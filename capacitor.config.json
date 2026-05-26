@@ -1,0 +1,14 @@
+{
+  "appId": "org.wgralgo.whosaiditknowledgeweapon",
+  "appName": "Who Said It?",
+  "webDir": "www",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#000000",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "FIT_CENTER",
+      "showSpinner": false
+    }
+  }
+}

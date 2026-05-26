@@ -1,0 +1,23 @@
+{
+  "name": "wgralgo-who-said-it",
+  "version": "1.0.0",
+  "description": "WGRALGO Who Said It? — Knowledge Is the Weapon Edition (offline Android quote-recognition game)",
+  "main": "index.js",
+  "scripts": {
+    "sync": "npx cap sync android",
+    "build:debug": "npx cap sync android && cd android && ./gradlew assembleDebug",
+    "build:release": "npx cap sync android && cd android && ./gradlew assembleRelease"
+  },
+  "keywords": ["wgralgo", "education", "quotes", "android", "capacitor", "offline"],
+  "author": "WGRALGO / The Wealth Gap Resolution Algorithm Inc.",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/core": "^6.2.1",
+    "@capacitor/splash-screen": "^6.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5"
+  }
+}

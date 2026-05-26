@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Who Said It?</string>
+    <string name="title_activity_main">Who Said It?</string>
+    <string name="package_name">org.wgralgo.whosaiditknowledgeweapon</string>
+    <string name="custom_url_scheme">org.wgralgo.whosaiditknowledgeweapon</string>
+</resources>
