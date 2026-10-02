@@ -16,3 +16,11 @@ Thumbs.db
 *.apk
 !WhoSaidIt-v*.apk
 !WhoSaidIt-v*.apk.sha256
+
+# Signing keys and secrets (never commit)
+keystore.properties
+*.jks
+*.keystore
+*.p12
+*.base64
+*-SECRETS.txt

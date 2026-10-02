@@ -1,0 +1,123 @@
+name: Android Signed Release
+
+# Builds the signed release APK and publishes it as a GitHub Release.
+#
+# Run it from the Actions tab ("Run workflow"), or push a tag like v1.1.0.
+# The version comes from package.json, so the tag is always v<version>.
+#
+# Needs these repository secrets (Settings > Secrets and variables > Actions):
+#   WSI_KEYSTORE_BASE64    the release keystore, base64-encoded
+#   WSI_KEYSTORE_PASSWORD  keystore password
+#   WSI_KEY_ALIAS          key alias (who-said-it)
+#   WSI_KEY_PASSWORD       key password
+# The keystore itself is never committed to git.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-34 build-tools;35.0.0'
+
+      - name: Read version
+        id: ver
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Check signing secrets
+        env:
+          KS: ${{ secrets.WSI_KEYSTORE_BASE64 }}
+          KSP: ${{ secrets.WSI_KEYSTORE_PASSWORD }}
+          KA: ${{ secrets.WSI_KEY_ALIAS }}
+          KP: ${{ secrets.WSI_KEY_PASSWORD }}
+        run: |
+          missing=0
+          [ -n "$KS" ]  || { echo "::error::Secret WSI_KEYSTORE_BASE64 is not set"; missing=1; }
+          [ -n "$KSP" ] || { echo "::error::Secret WSI_KEYSTORE_PASSWORD is not set"; missing=1; }
+          [ -n "$KA" ]  || { echo "::error::Secret WSI_KEY_ALIAS is not set"; missing=1; }
+          [ -n "$KP" ]  || { echo "::error::Secret WSI_KEY_PASSWORD is not set"; missing=1; }
+          exit $missing
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Restore keystore
+        env:
+          KS: ${{ secrets.WSI_KEYSTORE_BASE64 }}
+        run: echo "$KS" | base64 -d > "$RUNNER_TEMP/release.keystore"
+
+      - name: Build signed release APK
+        env:
+          WSI_KEYSTORE_FILE: ${{ runner.temp }}/release.keystore
+          WSI_KEYSTORE_PASSWORD: ${{ secrets.WSI_KEYSTORE_PASSWORD }}
+          WSI_KEY_ALIAS: ${{ secrets.WSI_KEY_ALIAS }}
+          WSI_KEY_PASSWORD: ${{ secrets.WSI_KEY_PASSWORD }}
+        run: |
+          cd android
+          chmod +x ./gradlew
+          ./gradlew assembleRelease
+
+      - name: Remove keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.keystore"
+
+      - name: Rename APK and checksum
+        run: |
+          APK="WGRALGO-WhoSaidIt-v${{ steps.ver.outputs.version }}.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "$APK"
+          sha256sum "$APK" > "$APK.sha256"
+          cat "$APK.sha256"
+
+      - name: Validate release APK
+        run: bash tools/validate-release.sh "WGRALGO-WhoSaidIt-v${{ steps.ver.outputs.version }}.apk"
+
+      - name: Print signing certificate
+        run: |
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BT/apksigner" verify --print-certs "WGRALGO-WhoSaidIt-v${{ steps.ver.outputs.version }}.apk"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          name: Who Said It? v${{ steps.ver.outputs.version }}
+          body_path: release-notes/v${{ steps.ver.outputs.version }}.md
+          files: |
+            WGRALGO-WhoSaidIt-v${{ steps.ver.outputs.version }}.apk
+            WGRALGO-WhoSaidIt-v${{ steps.ver.outputs.version }}.apk.sha256
+
+      - name: Upload APK as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WGRALGO-WhoSaidIt-v${{ steps.ver.outputs.version }}
+          path: |
+            WGRALGO-WhoSaidIt-v${{ steps.ver.outputs.version }}.apk
+            WGRALGO-WhoSaidIt-v${{ steps.ver.outputs.version }}.apk.sha256
