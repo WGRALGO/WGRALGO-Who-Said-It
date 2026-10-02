@@ -2,7 +2,7 @@
 
 **App:** WGRALGO Who Said It? — Knowledge Is the Weapon™ Edition
 **Publisher:** WGRALGO / The Wealth Gap Resolution Algorithm™ Inc.
-**Version:** 1.0.0
+**Version:** 2.0.0
 
 ## What the app does
 
@@ -23,7 +23,7 @@ The app is an offline educational quote-recognition game. All questions, answers
 
 ## Android permissions
 
-The app declares **no** dangerous permissions and **no** `INTERNET` permission. It cannot make network requests. The only permission present in the manifest is the auto-generated `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` Android adds to apps targeting modern API levels — it is internal to the app and does not grant any access to user data.
+The app declares **no** dangerous permissions and **no** `INTERNET` permission (it is stripped from the final manifest). It cannot make network requests. The only permission present in the manifest is the auto-generated `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` Android adds to apps targeting modern API levels — it is internal to the app and does not grant any access to user data.
 
 ## Children
 

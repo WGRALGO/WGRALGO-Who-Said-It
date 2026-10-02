@@ -1,515 +1,1150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; media-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none';">
+<meta name="theme-color" content="#000000">
 <title>Who Said It?</title>
+<!-- Who Said It? — Knowledge Is the Weapon — Android app build.
+     Game: the WGRA website version, wrapped in an app shell.
+     No cookies, no trackers, no outside files, nothing saved on the device. -->
 <style>
-  :root{
-    --gold:#d4af37;
-    --gold-soft:#f5e4b3;
-    --gold-deep:#a07b1c;
-    --black:#000000;
-    --panel:#0d0d0d;
-    --panel2:#161616;
-    --line:rgba(212,175,55,0.45);
-    --line-soft:rgba(212,175,55,0.18);
-    --white:#ffffff;
-    --muted:#cfcfcf;
-    --green:#1faa54;
-    --green-soft:rgba(31,170,84,0.18);
-    --red:#d93b3b;
-    --red-soft:rgba(217,59,59,0.18);
+  .wgra-ws-wrapper {
+    width: 100%;
+    box-sizing: border-box;
+    background: radial-gradient(circle at top, #181818 0%, #050505 58%);
+    padding: 56px 20px 70px;
+    color: #fdfaf0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
   }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;padding:0;background:var(--black);color:var(--white);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    min-height:100vh;line-height:1.45;
-    background:
-      radial-gradient(1200px 600px at 50% -100px,rgba(212,175,55,0.10),transparent 70%),
-      var(--black);
+
+  .wgra-ws-inner { max-width: 820px; margin: 0 auto; }
+
+  .wgra-ws-heading { text-align: center; margin-bottom: 26px; }
+
+  .wgra-ws-kicker {
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(245,228,179,0.9);
+    margin-bottom: 8px;
   }
-  .app{max-width:760px;margin:0 auto;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom);}
-  .screen{display:none;padding:14px 0 32px}
-  .screen.active{display:block}
-  .brand-logo{display:block;margin:14px auto 8px;max-width:78%;width:380px;height:auto;
-    filter:drop-shadow(0 0 18px rgba(212,175,55,0.18))}
-  h1.title{font-size:30px;margin:6px 0 2px;text-align:center;color:var(--gold);
-    letter-spacing:.5px;text-shadow:0 0 14px rgba(212,175,55,0.25)}
-  h2.subtitle{font-size:17px;margin:0 0 4px;text-align:center;color:var(--gold-soft);font-weight:600;letter-spacing:.3px}
-  .smallcap{font-size:11px;letter-spacing:2.5px;text-align:center;color:var(--gold-deep);
-    text-transform:uppercase;margin:6px 0 12px}
-  .tagline{text-align:center;color:var(--muted);font-style:italic;font-size:14.5px;margin:0 6px 18px}
-  .panel{background:linear-gradient(180deg,var(--panel) 0%,var(--panel2) 100%);
-    border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0;
-    box-shadow:0 0 0 1px rgba(212,175,55,0.05) inset, 0 14px 40px rgba(0,0,0,0.55)}
-  .btn{display:block;width:100%;text-align:center;padding:16px 18px;border-radius:14px;
-    border:1px solid var(--gold);background:linear-gradient(180deg,#1a1a1a,#0b0b0b);
-    color:var(--gold-soft);font-size:17px;font-weight:700;letter-spacing:.4px;
-    cursor:pointer;transition:transform .08s ease,background .2s ease,box-shadow .2s ease;
-    margin:10px 0;font-family:inherit}
-  .btn:active{transform:translateY(1px)}
-  .btn.primary{background:linear-gradient(180deg,#3a2c08,#1a1206);color:#fff;
-    border-color:var(--gold-soft);box-shadow:0 0 22px rgba(212,175,55,0.35)}
-  .btn.ghost{background:transparent;color:var(--gold-soft);border-color:var(--line)}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
-  .badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;letter-spacing:1.5px;
-    text-transform:uppercase;padding:6px 10px;border-radius:999px;
-    border:1px solid var(--line);color:var(--gold-soft);background:#0a0a0a;font-weight:700}
-  .badge.diff-Beginner{color:#9fe5b1;border-color:rgba(31,170,84,0.55)}
-  .badge.diff-Intermediate{color:#ffe28a;border-color:rgba(212,175,55,0.7)}
-  .badge.diff-Advanced{color:#ffb1b1;border-color:rgba(217,59,59,0.6)}
-  .scorebar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0 0}
-  .scorecell{padding:10px 12px;border:1px solid var(--line-soft);border-radius:12px;background:#080808;text-align:center}
-  .scorecell .lbl{font-size:11px;letter-spacing:2px;color:var(--gold-deep);text-transform:uppercase}
-  .scorecell .val{font-size:22px;color:var(--gold-soft);font-weight:800;margin-top:2px}
-  .progress{height:8px;background:#111;border:1px solid var(--line-soft);border-radius:999px;overflow:hidden;margin:14px 0 4px}
-  .progress > span{display:block;height:100%;background:linear-gradient(90deg,var(--gold-deep),var(--gold));transition:width .35s ease}
-  .quote-card{padding:22px 18px;margin:14px 0;border-radius:18px;border:1px solid var(--line);
-    background:linear-gradient(180deg,#141009,#0a0703);position:relative;color:#fff}
-  .quote-mark{font-family:Georgia,serif;color:var(--gold);font-size:54px;line-height:1;
-    position:absolute;top:8px;left:14px;opacity:.45}
-  .quote-text{font-size:19px;line-height:1.5;font-style:italic;color:#fff;padding:8px 6px 0 32px;
-    word-break:break-word}
-  .answer{margin:9px 0;padding:14px 16px;border-radius:14px;border:1px solid var(--line);
-    background:#0a0a0a;color:#fff;font-size:15.5px;cursor:pointer;text-align:left;
-    width:100%;font-family:inherit;font-weight:600;transition:background .15s ease,border-color .15s ease}
-  .answer:active{transform:translateY(1px)}
-  .answer.correct{background:var(--green-soft);border-color:var(--green);color:#dcffe6}
-  .answer.wrong{background:var(--red-soft);border-color:var(--red);color:#ffdede}
-  .answer.locked{cursor:default;opacity:.85}
-  .answer.locked:not(.correct):not(.wrong){opacity:.45}
-  .feedback{margin-top:14px;padding:14px 16px;border-radius:14px;border:1px solid var(--line);
-    background:#0a0a0a;display:none}
-  .feedback.show{display:block}
-  .feedback.correct{border-color:var(--green);background:rgba(31,170,84,0.08)}
-  .feedback.wrong{border-color:var(--red);background:rgba(217,59,59,0.08)}
-  .feedback h3{margin:0 0 8px;font-size:16px;color:var(--gold)}
-  .feedback h3.ok{color:#9fe5b1}
-  .feedback h3.bad{color:#ffb1b1}
-  .feedback p{margin:6px 0;color:var(--muted);font-size:14.5px}
-  .feedback .who{color:#fff;font-weight:700}
-  .center{text-align:center}
-  .hr{height:1px;background:var(--line-soft);margin:18px 0}
-  .footer-note{color:#7a7a7a;font-size:11px;text-align:center;margin:24px 0 6px;letter-spacing:.5px}
-  .legal{color:#666;font-size:10.5px;text-align:center;margin:6px 0 18px;padding:0 8px}
-  .results-rating{font-size:24px;color:var(--gold);text-align:center;margin:6px 0 4px;font-weight:800}
-  .results-score{font-size:48px;color:#fff;text-align:center;font-weight:800;margin:6px 0 2px}
-  .results-pct{font-size:14px;color:var(--gold-soft);text-align:center;letter-spacing:2px}
-  ul.how{padding-left:18px;color:var(--muted);font-size:15px}
-  ul.how li{margin:6px 0}
-  @media (min-width:560px){
-    .quote-text{font-size:21px}
-    h1.title{font-size:36px}
+
+  .wgra-ws-title {
+    font-size: clamp(24px, 4vw, 32px);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin: 0 0 10px;
+    line-height: 1.3;
   }
+
+  .wgra-ws-title span { color: #fbe79a; }
+
+  .wgra-ws-sub {
+    font-size: 17px;
+    color: #f5e4b3;
+    max-width: 620px;
+    margin: 0 auto;
+  }
+
+  .wgra-ws-card {
+    background: radial-gradient(circle at top left, rgba(212,175,55,0.16), #0a0a0a 52%);
+    border-radius: 18px;
+    border: 1px solid rgba(212,175,55,0.45);
+    box-shadow: 0 0 24px rgba(0,0,0,0.75);
+    padding: 24px 20px;
+  }
+
+  .wgra-ws-card + .wgra-ws-card { margin-top: 18px; }
+  .wgra-ws-card p { margin: 0 0 12px; }
+
+  .wgra-ws-levels {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 8px 0 18px;
+  }
+
+  .wgra-ws-level {
+    cursor: pointer;
+    border-radius: 14px;
+    padding: 12px 8px;
+    background: rgba(5,5,5,0.9) !important;
+    border: 1px solid rgba(245,228,179,0.5);
+    color: #fbe79a !important;
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.3;
+    text-align: center;
+  }
+
+  .wgra-ws-level small {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #e6e6e6 !important;
+    margin-top: 3px;
+  }
+
+  .wgra-ws-level.is-on {
+    background: rgba(212,175,55,0.22) !important;
+    border: 2px solid #fbe79a;
+    box-shadow: 0 0 14px rgba(212,175,55,0.6);
+  }
+
+  .wgra-ws-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .wgra-ws-progress {
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(245,228,179,0.9);
+  }
+
+  .wgra-ws-pill {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(245,228,179,0.7);
+    font-size: 14px;
+    background: rgba(0,0,0,0.6);
+  }
+
+  .wgra-ws-pill strong { color: #fbe79a; }
+
+  .wgra-ws-track {
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #30260b, #141414);
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+
+  .wgra-ws-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #fbe79a, #d4af37, #b07a12);
+    transition: width 0.35s ease-out;
+  }
+
+  .wgra-ws-mode {
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #f5e4b3;
+    margin-bottom: 10px;
+  }
+
+  .wgra-ws-quote {
+    border-radius: 16px;
+    border: 1px solid rgba(245,228,179,0.55);
+    background: radial-gradient(circle at top, rgba(245,228,179,0.12), rgba(0,0,0,0.92));
+    padding: 22px 20px 18px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+
+  .wgra-ws-quote::before {
+    content: "“";
+    position: absolute;
+    top: -14px;
+    left: 14px;
+    font-size: 54px;
+    line-height: 1;
+    color: rgba(245,228,179,0.35);
+    font-family: Georgia, serif;
+  }
+
+  .wgra-ws-quote-text {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 21px;
+    line-height: 1.55;
+    white-space: pre-line;
+  }
+
+  .wgra-ws-credit {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #f5e4b3;
+  }
+
+  .wgra-ws-credit strong { color: #fbe79a; }
+
+  .wgra-ws-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .wgra-ws-opt {
+    cursor: pointer;
+    border-radius: 14px;
+    border: 1px solid rgba(245,228,179,0.5);
+    padding: 12px 14px;
+    font-size: 16px;
+    line-height: 1.4;
+    text-align: left;
+    background: radial-gradient(circle at top, #151515, #050505) !important;
+    color: #fdfaf0 !important;
+    transition: transform 0.12s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+
+  .wgra-ws-opt:hover:not(:disabled),
+  .wgra-ws-opt:focus-visible {
+    transform: translateY(-1px);
+    box-shadow: 0 0 12px rgba(212,175,55,0.45);
+    border-color: rgba(245,228,179,0.9);
+  }
+
+  .wgra-ws-opt:disabled { cursor: default; }
+
+  .wgra-ws-opt.is-right {
+    background: radial-gradient(circle at top, rgba(55,212,123,0.3), #05150c) !important;
+    border-color: rgba(55,212,123,0.95);
+  }
+
+  .wgra-ws-opt.is-wrong {
+    background: radial-gradient(circle at top, rgba(255,75,75,0.3), #190406) !important;
+    border-color: rgba(255,75,75,0.9);
+  }
+
+  .wgra-ws-context {
+    border-radius: 14px;
+    border: 1px solid rgba(245,228,179,0.45);
+    background: rgba(5,5,5,0.9);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #f5e4b3;
+  }
+
+  .wgra-ws-context:empty { display: none; }
+  .wgra-ws-context strong { color: #fdfaf0; }
+  .wgra-ws-ok { color: #37d47b !important; font-weight: 800; }
+  .wgra-ws-no { color: #ff6b6b !important; font-weight: 800; }
+
+  .wgra-ws-source {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(255,255,255,0.3);
+    font-size: 15px;
+  }
+
+  .wgra-ws-row {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .wgra-ws-btn,
+  .wgra-ws-btn-ghost {
+    cursor: pointer;
+    border-radius: 999px;
+    padding: 12px 22px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: transform 0.12s ease, filter 0.15s ease;
+  }
+
+  .wgra-ws-btn {
+    border: none;
+    background: linear-gradient(135deg, #fbe79a, #d4af37, #b07a12) !important;
+    color: #050505 !important;
+    box-shadow: 0 0 14px rgba(212,175,55,0.6);
+  }
+
+  .wgra-ws-btn-ghost {
+    border: 1px solid rgba(245,228,179,0.7);
+    background: transparent !important;
+    color: #f5e4b3 !important;
+  }
+
+  .wgra-ws-btn:hover:not(:disabled),
+  .wgra-ws-btn-ghost:hover { transform: translateY(-1px); filter: brightness(1.05); }
+
+  .wgra-ws-btn:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
+
+  .wgra-ws-big {
+    text-align: center;
+    font-size: 30px;
+    font-weight: 800;
+    color: #d4af37;
+  }
+
+  .wgra-ws-msg {
+    text-align: center;
+    color: #f5e4b3;
+    margin: 4px 0 12px;
+  }
+
+  .wgra-ws-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 14px 0 18px;
+  }
+
+  .wgra-ws-h3 {
+    font-size: 19px;
+    font-weight: 700;
+    color: #f5e4b3;
+    margin: 0 0 8px;
+  }
+
+  .wgra-ws-review {
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    background: rgba(5,5,5,0.9);
+    border: 1px solid rgba(212,175,55,0.3);
+    font-size: 15px;
+  }
+
+  .wgra-ws-review .wgra-q {
+    font-family: Georgia, serif;
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+
+  .wgra-ws-review .wgra-ctx { color: #f5e4b3; margin-top: 4px; }
+
+  .wgra-ws-tips { border-color: rgba(55,212,123,0.55); }
+
+  .wgra-ws-tips ol {
+    margin: 6px 0 8px;
+    padding-left: 22px;
+    line-height: 1.8;
+  }
+
+  .wgra-ws-tips strong { color: #fbe79a; }
+
+  .wgra-ws-note {
+    font-size: 13px;
+    color: #cfcfcf;
+  }
+
+  @media (max-width: 640px) {
+    .wgra-ws-wrapper { padding: 40px 14px 56px; }
+    .wgra-ws-card { padding: 22px 16px; }
+    .wgra-ws-levels { grid-template-columns: repeat(2, 1fr); }
+    .wgra-ws-options { grid-template-columns: 1fr; }
+    .wgra-ws-quote-text { font-size: 19px; }
+    .wgra-ws-btn, .wgra-ws-btn-ghost { width: 100%; }
+  }
+
+  /* ================= ANDROID APP SHELL ================= */
+  :root { --bar-h: 56px; --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px); }
+  html, body {
+    margin: 0; padding: 0; min-height: 100%;
+    background: #000;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  /* Pure black so the logo's black background blends in (no visible box). */
+  #wgra-ws-root { background: #000; padding: calc(var(--bar-h) + var(--safe-top) + 14px) 12px calc(28px + var(--safe-bottom)); min-height: 100vh; }
+  #wgra-ws-root .wgra-ws-inner { max-width: 820px; } #wgra-ws-root .wgra-ws-card { scroll-margin-top: calc(var(--bar-h) + var(--safe-top) + 10px); }
+  
+  
+
+  .app-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+    padding-top: var(--safe-top);
+    background: #000;
+    border-bottom: 1px solid rgba(212,175,55,0.25);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .app-bar-row { height: var(--bar-h); max-width: 820px; margin: 0 auto; display: flex; align-items: center; gap: 10px; padding: 0 6px 0 12px; }
+  .app-bar-logo { width: 36px; height: 36px; border-radius: 8px; }
+  .app-bar-title { flex: 1; min-width: 0; font-size: 19px; font-weight: 800; color: #fbe79a; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .icon-btn { width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+  .icon-btn:active { background: rgba(255,255,255,0.1); }
+  .icon-btn svg { width: 24px; height: 24px; fill: #fdfaf0; }
+
+  /* Setup hero: big logo, shown only on the setup screen */
+  .app-hero { display: none; text-align: center; margin: 4px 0 18px; }
+  #wgra-ws-root.is-intro .app-hero { display: block; }
+  .app-hero img { width: min(64vw, 260px, 34vh); height: min(64vw, 260px, 34vh); }
+  /* Landscape phones: keep the logo small so the game starts on screen */
+  @media (orientation: landscape) and (max-height: 560px) {
+    .app-hero { margin-bottom: 10px; }
+    .app-hero p { margin-top: 6px; font-size: 15px; }
+  }
+  .app-hero p { margin: 10px auto 0; max-width: 560px; font-size: 16px; line-height: 1.5; color: #f5e4b3; }
+
+  /* Bottom sheets: menu, tips, help, about, privacy, credits */
+  .scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,0.6); opacity: 0; pointer-events: none; transition: opacity .25s; }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    max-width: 820px; margin: 0 auto; max-height: 85vh; overflow-y: auto;
+    background: #1a1a1a; border-radius: 24px 24px 0 0; border-top: 1px solid rgba(212,175,55,0.4);
+    padding: 10px 20px calc(24px + var(--safe-bottom));
+    transform: translateY(105%); transition: transform .3s cubic-bezier(.2,.8,.2,1);
+    color: #fdfaf0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .sheet.open { transform: none; }
+  .sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: #555; margin: 0 auto 14px; }
+  .sheet h3 { margin: 0 0 10px; font-size: 21px; color: #fbe79a; }
+  .sheet p, .sheet li { font-size: 15px; line-height: 1.6; color: #e8e4d6; }
+  .sheet ul { padding-left: 20px; margin: 0 0 10px; }
+  .sheet .muted { color: rgba(253,250,240,0.6); font-size: 14px; }
+  .sheet-close {
+    display: block; width: 100%; margin-top: 14px; min-height: 50px; border: 0; border-radius: 14px;
+    background: #2a2a2a; color: #fbe79a; font: inherit; font-size: 16px; font-weight: 800; cursor: pointer;
+  }
+  .menu-item { display: flex; align-items: center; gap: 16px; width: 100%; padding: 14px 6px; border: 0; background: transparent; color: #fdfaf0; font: inherit; font-size: 16px; text-align: left; cursor: pointer; border-radius: 12px; }
+  .menu-item:active { background: rgba(255,255,255,0.06); }
+  .menu-item svg { width: 22px; height: 22px; fill: #d4af37; flex: none; }
+
+  /* Intro splash: the big logo while the app opens */
+  .app-splash { position: fixed; inset: 0; z-index: 100; background: #000; display: flex; align-items: center; justify-content: center; transition: opacity .45s ease; }
+  .app-splash img { width: min(80vw, 80vh, 520px); height: min(80vw, 80vh, 520px); animation: app-splash-in .6s ease both; }
+  .app-splash.out { opacity: 0; pointer-events: none; }
+  @keyframes app-splash-in { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .app-splash, .app-splash img, .sheet, .scrim { animation: none; transition: none; } }
+  @media (max-width: 380px) { .app-bar-title { font-size: 16.5px; letter-spacing: 0; } .app-bar-row { gap: 8px; } }
 </style>
 </head>
 <body>
-<div class="app">
+<div id="app-splash" class="app-splash" aria-hidden="true"><img src="logo.jpg" alt=""></div>
 
-  <!-- ============ HOME ============ -->
-  <section id="screen-home" class="screen active">
-    <img class="brand-logo" src="logo.png" alt="Who Said It logo" />
-    <h1 class="title">Who Said It?</h1>
-    <h2 class="subtitle">Knowledge Is the Weapon&trade; Edition</h2>
-    <div class="smallcap">Digital Smarts &nbsp;|&nbsp; Quote Edition</div>
-    <p class="tagline">Read the quote, trust your gut, and choose the thinker who said it.</p>
+<header class="app-bar">
+  <div class="app-bar-row">
+    <img class="app-bar-logo" src="logo.jpg" alt="">
+    <div class="app-bar-title">Who Said It?</div>
+    <button type="button" class="icon-btn" data-sheet="sheet-menu" aria-label="More options"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></button>
+  </div>
+</header>
 
-    <div class="panel">
-      <button class="btn primary" id="btn-start">Start Game</button>
-      <button class="btn ghost" id="btn-how">How It Works</button>
+<div class="wgra-ws-wrapper is-intro" id="wgra-ws-root">
+  <div class="wgra-ws-inner">
+    <div class="app-hero">
+      <img src="logo.jpg" alt="Who Said It? Knowledge Is the Weapon logo">
+      <p>Guess who said it — and learn to spot the famous quotes that were never really said at all.</p>
     </div>
 
-    <div class="footer-note">Offline &middot; No ads &middot; No trackers</div>
-    <div class="legal">
-      For educational awareness and entertainment only. Verify important quote history through trusted sources.
-    </div>
-  </section>
-
-  <!-- ============ HOW IT WORKS ============ -->
-  <section id="screen-how" class="screen">
-    <h1 class="title">How It Works</h1>
-    <div class="panel">
-      <ul class="how">
-        <li><b>Read</b> the quote on screen.</li>
-        <li><b>Choose</b> who you think said it from four thinkers.</li>
-        <li>You play <b>10 randomized rounds</b> per game.</li>
-        <li>Each question shows a <b>Wisdom Category</b> and a <b>Difficulty</b> badge.</li>
-        <li>After you answer, you see <b>Correct</b> or <b>Incorrect</b>, the real speaker, and a short note explaining the quote.</li>
-        <li>Score climbs by 1 per correct answer. End screen shows your final rating.</li>
-        <li>This is an <b>educational quote-recognition</b> game. It teaches recognition, reflection, and attribution awareness &mdash; not propaganda or a single ideology.</li>
-        <li>Many famous &ldquo;quotes&rdquo; online are misattributed. The point is to learn to <i>check sources</i>.</li>
-      </ul>
-      <button class="btn ghost" id="btn-how-back">Back</button>
-    </div>
-  </section>
-
-  <!-- ============ QUESTION ============ -->
-  <section id="screen-q" class="screen">
-    <div class="panel">
-      <div class="row" style="justify-content:space-between">
-        <span class="badge" id="b-cat">Category</span>
-        <span class="badge" id="b-diff">Difficulty</span>
+    <!-- INTRO -->
+    <div class="wgra-ws-card" id="wgra-ws-intro">
+      <p>Each round has <strong>10 questions</strong> of two kinds:</p>
+      <p>
+        🗣️ <strong>Who said it?</strong> Read the quote and pick the right person.<br>
+        🔍 <strong>Real or misattributed?</strong> Many famous quotes online were never said by the person they're
+        credited to. Can you tell which are real?
+      </p>
+      <p>After every answer, you'll learn where the quote really comes from.</p>
+      <p><strong>Choose your level:</strong></p>
+      <div class="wgra-ws-levels" id="wgra-ws-levels" role="group" aria-label="Choose a level">
+        <button type="button" class="wgra-ws-level is-on" data-level="mix" aria-pressed="true">All Levels<small>Easy to hard</small></button>
+        <button type="button" class="wgra-ws-level" data-level="1" aria-pressed="false">Beginner<small>Famous voices</small></button>
+        <button type="button" class="wgra-ws-level" data-level="2" aria-pressed="false">Everyday<small>Writers & builders</small></button>
+        <button type="button" class="wgra-ws-level" data-level="3" aria-pressed="false">Expert<small>Deep cuts</small></button>
       </div>
-      <div class="scorebar">
-        <div class="scorecell"><div class="lbl">Question</div><div class="val" id="b-prog">1 / 10</div></div>
-        <div class="scorecell"><div class="lbl">Score</div><div class="val" id="b-score">0 / 0</div></div>
-      </div>
-      <div class="progress"><span id="b-bar" style="width:10%"></span></div>
-
-      <div class="quote-card">
-        <div class="quote-mark">&ldquo;</div>
-        <div class="quote-text" id="q-text">&hellip;</div>
-      </div>
-
-      <div id="q-answers"></div>
-
-      <div class="feedback" id="q-feedback">
-        <h3 id="fb-title">Correct</h3>
-        <p>Real speaker: <span class="who" id="fb-who"></span></p>
-        <p id="fb-expl"></p>
-        <button class="btn primary" id="btn-next" style="margin-top:14px">Next</button>
+      <div class="wgra-ws-row" style="justify-content:flex-start;">
+        <button type="button" class="wgra-ws-btn" id="wgra-ws-start">Start the game</button>
       </div>
     </div>
-    <div class="legal">Quote attributions in this game are sourced from widely-cited public records. If you spot an error, please open an issue on the project repository.</div>
-  </section>
 
-  <!-- ============ RESULTS ============ -->
-  <section id="screen-end" class="screen">
-    <h1 class="title">Final Results</h1>
-    <div class="panel">
-      <div class="results-score" id="r-score">0 / 10</div>
-      <div class="results-pct" id="r-pct">0%</div>
-      <div class="hr"></div>
-      <div class="results-rating" id="r-rating">&mdash;</div>
-      <p class="center" id="r-feedback" style="color:var(--muted);font-size:15px">&mdash;</p>
-      <button class="btn primary" id="btn-again">Play Again</button>
-      <button class="btn ghost" id="btn-home">Home</button>
+    <!-- PLAY -->
+    <div class="wgra-ws-card" id="wgra-ws-play" style="display:none;">
+      <div class="wgra-ws-top">
+        <div class="wgra-ws-progress" id="wgra-ws-progress">Question 1 of 10</div>
+        <div class="wgra-ws-pill">Score <strong id="wgra-ws-score">0</strong></div>
+      </div>
+      <div class="wgra-ws-track"><div class="wgra-ws-fill" id="wgra-ws-fill"></div></div>
+      <div class="wgra-ws-mode" id="wgra-ws-mode"></div>
+      <div class="wgra-ws-quote">
+        <div class="wgra-ws-quote-text" id="wgra-ws-quote"></div>
+        <div class="wgra-ws-credit" id="wgra-ws-credit"></div>
+      </div>
+      <div class="wgra-ws-options" id="wgra-ws-options"></div>
+      <div class="wgra-ws-context" id="wgra-ws-context" aria-live="polite"></div>
+      <div class="wgra-ws-row">
+        <button type="button" class="wgra-ws-btn-ghost" id="wgra-ws-quit">Start over</button>
+        <button type="button" class="wgra-ws-btn" id="wgra-ws-next" disabled>Choose an answer</button>
+      </div>
     </div>
-    <div class="legal">
-      Who Said It? &mdash; Knowledge Is the Weapon&trade; Edition is for educational awareness only. It does not provide legal, financial, medical, academic, or professional advice.
-    </div>
-  </section>
 
+    <!-- RESULTS -->
+    <div class="wgra-ws-card" id="wgra-ws-results" style="display:none;"></div>
+
+    <!-- TIPS -->
+    <div class="wgra-ws-card wgra-ws-tips">
+      <div class="wgra-ws-h3">How to check a quote before you share it</div>
+      <ol>
+        <li><strong>Search the exact words in quotation marks</strong> and look for the original book, speech, letter, or interview.</li>
+        <li><strong>Check a quote-research site</strong> like Quote Investigator or Wikiquote, which track where quotes really come from.</li>
+        <li><strong>Be suspicious of quote images with no source.</strong> A famous name and a nice background don't make a quote real.</li>
+        <li><strong>Notice the wording.</strong> Modern-sounding phrasing from someone who lived centuries ago is often a clue.</li>
+      </ol>
+      <div class="wgra-ws-note">
+        Sources reflect the best-documented origins known to quote researchers. Translations of older works vary.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="scrim" class="scrim"></div>
+
+<div id="sheet-menu" class="sheet" role="dialog" aria-modal="true" aria-label="Menu">
+  <div class="sheet-handle"></div>
+  <button type="button" class="menu-item" data-sheet="sheet-about"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>About</button>
+  <button type="button" class="menu-item" data-sheet="sheet-privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>Privacy</button>
+  <button type="button" class="menu-item" data-sheet="sheet-credits"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Credits</button>
+</div>
+
+<div id="sheet-about" class="sheet" role="dialog" aria-modal="true" aria-label="About">
+  <div class="sheet-handle"></div>
+  <h3>About</h3>
+  <p>Who Said It? — Knowledge Is the Weapon™ is a free quote game from WGRALGO / The Wealth Gap Resolution Algorithm™ Inc. Guess who said it, and learn to spot the famous quotes that were never really said at all.</p>
+  <h3>How it works</h3>
+  <ul>
+    <li>Pick a level: All Levels, Beginner, Everyday, or Expert.</li>
+    <li>Each round has 10 quotes. 🗣️ <strong>Who said it?</strong> Pick the right person. 🔍 <strong>Real or misattributed?</strong> Decide if the person really said it.</li>
+    <li>After every answer, learn where the quote really comes from.</li>
+  </ul>
+  <p class="muted">Sources reflect the best-documented origins known to quote researchers. Translations of older works vary.</p>
+  <p class="muted">Who Said It? v2.0.0</p>
+  <button type="button" class="sheet-close" data-close>Close</button>
+</div>
+
+<div id="sheet-privacy" class="sheet" role="dialog" aria-modal="true" aria-label="Privacy">
+  <div class="sheet-handle"></div>
+  <h3>Privacy</h3>
+  <p>This app works offline and doesn’t save anything on your device. It does not collect personal data.</p>
+  <ul>
+    <li>No ads</li>
+    <li>No account</li>
+    <li>No analytics, cookies, or trackers</li>
+    <li>No internet permission</li>
+  </ul>
+  <button type="button" class="sheet-close" data-close>Close</button>
+</div>
+
+<div id="sheet-credits" class="sheet" role="dialog" aria-modal="true" aria-label="Credits">
+  <div class="sheet-handle"></div>
+  <h3>Credits</h3>
+  <ul>
+    <li><strong>WGRALGO</strong> — Project owner, concept, direction, testing, and publishing.</li>
+    <li><strong>ChatGPT</strong> — Original web game assistance.</li>
+    <li><strong>Claude Code</strong> — Android app build, packaging, and GitHub project setup.</li>
+  </ul>
+  <p class="muted">Free and open source under the GNU General Public License v3.0. Made by WGRALGO / The Wealth Gap Resolution Algorithm™ Inc.</p>
+  <button type="button" class="sheet-close" data-close>Close</button>
 </div>
 
 <script>
-/* ============================================================
-   Quote bank. Attributions chosen from widely-cited public
-   records. Where attribution is contested, we credit the
-   popularizer (and we avoid common internet-only misquotes).
-   ============================================================ */
-const QUOTES = [
- /* ---------- KNOWLEDGE ---------- */
- {q:"The only true wisdom is in knowing you know nothing.",a:"Socrates",w:["Plato","Aristotle","Confucius"],c:"Knowledge",d:"Beginner",
-  e:"Plato's Apology presents this idea attributed to Socrates: real wisdom starts with recognizing the limits of your knowledge."},
- {q:"Knowledge is power.",a:"Francis Bacon",w:["Niccolò Machiavelli","Thomas Hobbes","René Descartes"],c:"Knowledge",d:"Beginner",
-  e:"Often traced to Francis Bacon's 1597 Meditationes Sacrae (\"scientia potestas est\"). It frames learning as a form of leverage in the world."},
- {q:"An investment in knowledge pays the best interest.",a:"Benjamin Franklin",w:["Thomas Jefferson","Andrew Carnegie","John Adams"],c:"Knowledge",d:"Beginner",
-  e:"Franklin treated reading and self-education as the highest-return investment a person of any class could make."},
- {q:"Real knowledge is to know the extent of one's ignorance.",a:"Confucius",w:["Lao Tzu","Buddha","Sun Tzu"],c:"Knowledge",d:"Intermediate",
-  e:"A recurring Confucian idea: mastery begins by mapping what you do not yet understand, not by performing certainty."},
- {q:"It is impossible for a man to learn what he thinks he already knows.",a:"Epictetus",w:["Seneca","Marcus Aurelius","Cicero"],c:"Knowledge",d:"Intermediate",
-  e:"From the Discourses. Epictetus argues that assumed expertise is the main obstacle to actually getting smarter."},
- {q:"Wisdom begins in wonder.",a:"Socrates",w:["Aristotle","Plato","Heraclitus"],c:"Knowledge",d:"Beginner",
-  e:"Attributed to Socrates by Plato. Curiosity, not certainty, is treated as the starting point of philosophy."},
- {q:"He who knows others is wise; he who knows himself is enlightened.",a:"Lao Tzu",w:["Confucius","Buddha","Sun Tzu"],c:"Knowledge",d:"Intermediate",
-  e:"From the Tao Te Ching. Self-knowledge is presented as a deeper rung than knowledge of other people."},
- {q:"Reading is to the mind what exercise is to the body.",a:"Joseph Addison",w:["Samuel Johnson","Mark Twain","Ralph Waldo Emerson"],c:"Knowledge",d:"Advanced",
-  e:"From Joseph Addison's writings in The Tatler (early 1700s). Reading is framed as deliberate mental training."},
+(function () {
+  /*
+    QUESTION BANK
+      lv:   1 Beginner, 2 Everyday, 3 Expert
+      kind: "who"    — q = quote, a = correct person, w = three other people, src = source, ctx = context
+            "verify" — q = quote, who = person it's credited to, real = true/false,
+                       src = where it really comes from, ctx = context
+  */
+  const Q = [
+    /* ===================== BEGINNER ===================== */
+    { lv: 1, kind: "who", q: "The only thing we have to fear is fear itself.",
+      a: "Franklin D. Roosevelt", w: ["Harry Truman", "Woodrow Wilson", "Theodore Roosevelt"],
+      src: "First inaugural address, 1933",
+      ctx: "Spoken during the Great Depression, when banks were failing and millions were out of work, to calm a frightened nation." },
 
- /* ---------- EDUCATION ---------- */
- {q:"Education is the most powerful weapon which you can use to change the world.",a:"Nelson Mandela",w:["Martin Luther King Jr.","Malcolm X","Frederick Douglass"],c:"Education",d:"Beginner",
-  e:"Mandela said this in a 2003 speech at the University of the Witwatersrand, framing education as a lever for systemic change."},
- {q:"Education is the passport to the future, for tomorrow belongs to those who prepare for it today.",a:"Malcolm X",w:["Martin Luther King Jr.","Booker T. Washington","W.E.B. Du Bois"],c:"Education",d:"Intermediate",
-  e:"Malcolm X repeatedly tied long-term political and economic power to preparation through education."},
- {q:"The function of education is to teach one to think intensively and to think critically.",a:"Martin Luther King Jr.",w:["W.E.B. Du Bois","John Dewey","Frederick Douglass"],c:"Education",d:"Advanced",
-  e:"From King's 1947 Morehouse College essay \"The Purpose of Education,\" where he warns intelligence + character must go together."},
- {q:"The roots of education are bitter, but the fruit is sweet.",a:"Aristotle",w:["Plato","Socrates","Confucius"],c:"Education",d:"Intermediate",
-  e:"Attributed to Aristotle. Learning is described as upfront difficulty rewarded later."},
- {q:"I have never let my schooling interfere with my education.",a:"Mark Twain",w:["Ralph Waldo Emerson","Henry David Thoreau","Oscar Wilde"],c:"Education",d:"Intermediate",
-  e:"Twain often distinguished formal schooling from lifelong self-directed learning."},
- {q:"Upon the subject of education... I can only say that I view it as the most important subject which we as a people can be engaged in.",a:"Abraham Lincoln",w:["Thomas Jefferson","Frederick Douglass","Theodore Roosevelt"],c:"Education",d:"Advanced",
-  e:"From Lincoln's 1832 New Salem campaign statement. He linked literacy and education to citizenship."},
+    { lv: 1, kind: "who", q: "Injustice anywhere is a threat to justice everywhere.",
+      a: "Martin Luther King Jr.", w: ["John Lewis", "Thurgood Marshall", "Bayard Rustin"],
+      src: "“Letter from Birmingham Jail,” 1963",
+      ctx: "Written from a jail cell after he was arrested for a peaceful protest, answering critics who told him to wait." },
 
- /* ---------- POWER ---------- */
- {q:"Power tends to corrupt, and absolute power corrupts absolutely.",a:"Lord Acton",w:["Thomas Jefferson","Edmund Burke","John Stuart Mill"],c:"Power",d:"Intermediate",
-  e:"From an 1887 letter by Lord Acton (John Dalberg-Acton). A warning about unchecked authority."},
- {q:"The measure of a man is what he does with power.",a:"Plato",w:["Aristotle","Cicero","Marcus Aurelius"],c:"Power",d:"Beginner",
-  e:"Attributed to Plato. Character is judged by how authority is used, not by holding it."},
- {q:"With great power there must also come great responsibility.",a:"Stan Lee",w:["Winston Churchill","Theodore Roosevelt","Voltaire"],c:"Power",d:"Beginner",
-  e:"Popularized in Amazing Fantasy #15 (1962). Earlier near-variants exist, but this exact framing is Stan Lee/Marvel."},
- {q:"Power concedes nothing without a demand. It never did and it never will.",a:"Frederick Douglass",w:["Sojourner Truth","Harriet Tubman","W.E.B. Du Bois"],c:"Power",d:"Intermediate",
-  e:"From Douglass's 1857 West India Emancipation speech. Rights are framed as won through organized pressure, not granted."},
- {q:"Speak softly and carry a big stick; you will go far.",a:"Theodore Roosevelt",w:["Franklin D. Roosevelt","Winston Churchill","Andrew Jackson"],c:"Power",d:"Beginner",
-  e:"Roosevelt used this West African proverb in 1901 to describe his foreign policy doctrine."},
- {q:"Almost all men can stand adversity, but if you want to test a man's character, give him power.",a:"Abraham Lincoln",w:["Theodore Roosevelt","Benjamin Franklin","Frederick Douglass"],c:"Power",d:"Advanced",
-  e:"Widely attributed to Lincoln; the test of leadership is not survival under pressure but conduct once empowered."},
+    { lv: 1, kind: "who", q: "Imagination is more important than knowledge.",
+      a: "Albert Einstein", w: ["Isaac Newton", "Marie Curie", "Niels Bohr"],
+      src: "Interview in The Saturday Evening Post, 1929",
+      ctx: "Einstein explained that knowledge is limited, while imagination points to everything we have yet to discover." },
 
- /* ---------- FREEDOM ---------- */
- {q:"Give me liberty, or give me death!",a:"Patrick Henry",w:["George Washington","Thomas Jefferson","John Adams"],c:"Freedom",d:"Beginner",
-  e:"Patrick Henry, 1775, at the Second Virginia Convention. A founding-era call to armed resistance over surrendered liberty."},
- {q:"Those who deny freedom to others deserve it not for themselves.",a:"Abraham Lincoln",w:["Frederick Douglass","Thomas Jefferson","Theodore Roosevelt"],c:"Freedom",d:"Intermediate",
-  e:"From an 1859 Lincoln letter. Liberty is framed as a universal claim or it is not a real one."},
- {q:"Freedom is never voluntarily given by the oppressor; it must be demanded by the oppressed.",a:"Martin Luther King Jr.",w:["Malcolm X","Nelson Mandela","Frederick Douglass"],c:"Freedom",d:"Intermediate",
-  e:"From King's 1963 \"Letter from Birmingham Jail.\" Civil rights are described as won, not gifted."},
- {q:"I would rather die on my feet than live on my knees.",a:"Emiliano Zapata",w:["Che Guevara","Simón Bolívar","Pancho Villa"],c:"Freedom",d:"Intermediate",
-  e:"Attributed to Mexican revolutionary Emiliano Zapata. Used widely in liberation movements since."},
- {q:"Those who would give up essential liberty, to purchase a little temporary safety, deserve neither liberty nor safety.",a:"Benjamin Franklin",w:["Thomas Jefferson","John Adams","Patrick Henry"],c:"Freedom",d:"Advanced",
-  e:"Franklin, 1755, in a Pennsylvania Assembly reply. Often quoted in debates over civil liberties vs. security."},
- {q:"For to be free is not merely to cast off one's chains, but to live in a way that respects and enhances the freedom of others.",a:"Nelson Mandela",w:["Desmond Tutu","Martin Luther King Jr.","Mahatma Gandhi"],c:"Freedom",d:"Advanced",
-  e:"From Mandela's 1994 autobiography Long Walk to Freedom. Liberation is described as an ongoing, communal duty."},
+    { lv: 1, kind: "who", q: "A journey of a thousand miles begins with a single step.",
+      a: "Lao Tzu", w: ["Confucius", "Sun Tzu", "Mencius"],
+      src: "Tao Te Ching, chapter 64 (a common translation)",
+      ctx: "An ancient Chinese text on the Tao, or “the Way.” Big goals are reached through small, steady actions." },
 
- /* ---------- COURAGE ---------- */
- {q:"Courage is grace under pressure.",a:"Ernest Hemingway",w:["John Steinbeck","F. Scott Fitzgerald","Mark Twain"],c:"Courage",d:"Intermediate",
-  e:"Hemingway's definition, quoted by Dorothy Parker in a 1929 New Yorker profile."},
- {q:"You gain strength, courage, and confidence by every experience in which you really stop to look fear in the face.",a:"Eleanor Roosevelt",w:["Helen Keller","Margaret Thatcher","Susan B. Anthony"],c:"Courage",d:"Intermediate",
-  e:"From Eleanor Roosevelt's 1960 book You Learn by Living. Courage is treated as a built skill, not a trait."},
- {q:"Courage is not the absence of fear, but the triumph over it.",a:"Nelson Mandela",w:["Winston Churchill","Mahatma Gandhi","Desmond Tutu"],c:"Courage",d:"Beginner",
-  e:"From Long Walk to Freedom. Courage is described as acting in spite of fear, not without it."},
- {q:"Fortune favors the bold.",a:"Virgil",w:["Cicero","Seneca","Horace"],c:"Courage",d:"Beginner",
-  e:"From Virgil's Aeneid (\"audentes fortuna iuvat\"). Used since antiquity to justify decisive action."},
- {q:"It is not the critic who counts... The credit belongs to the man who is actually in the arena.",a:"Theodore Roosevelt",w:["Franklin D. Roosevelt","Winston Churchill","John F. Kennedy"],c:"Courage",d:"Advanced",
-  e:"From Roosevelt's 1910 Sorbonne speech, \"Citizenship in a Republic.\" Honors doers over commentators."},
- {q:"Have no fear of perfection — you'll never reach it.",a:"Salvador Dalí",w:["Pablo Picasso","Vincent van Gogh","Henri Matisse"],c:"Courage",d:"Intermediate",
-  e:"Dalí's reply to creative perfectionism: ship the work, then keep going."},
+    { lv: 1, kind: "who", q: "Be water, my friend.",
+      a: "Bruce Lee", w: ["Jackie Chan", "Muhammad Ali", "Jet Li"],
+      src: "The TV series Longstreet, 1971",
+      ctx: "Bruce Lee described being flexible and adaptable like water — able to flow around obstacles or crash through them." },
 
- /* ---------- JUSTICE ---------- */
- {q:"Injustice anywhere is a threat to justice everywhere.",a:"Martin Luther King Jr.",w:["Malcolm X","Nelson Mandela","Desmond Tutu"],c:"Justice",d:"Beginner",
-  e:"From the \"Letter from Birmingham Jail,\" 1963. Frames moral obligation across borders and identities."},
- {q:"If we do not maintain justice, justice will not maintain us.",a:"Francis Bacon",w:["Thomas Hobbes","John Locke","Edmund Burke"],c:"Justice",d:"Advanced",
-  e:"Bacon argued the rule of law protects citizens only as long as citizens enforce it."},
- {q:"Where justice is denied, where poverty is enforced, where ignorance prevails... neither persons nor property will be safe.",a:"Frederick Douglass",w:["Abraham Lincoln","W.E.B. Du Bois","Booker T. Washington"],c:"Justice",d:"Advanced",
-  e:"From Douglass's 1886 address. Injustice is treated as a destabilizing force for everyone, not just its direct victims."},
- {q:"I object to violence because when it appears to do good, the good is only temporary; the evil it does is permanent.",a:"Mahatma Gandhi",w:["Martin Luther King Jr.","Leo Tolstoy","Desmond Tutu"],c:"Justice",d:"Advanced",
-  e:"From Gandhi's writings on nonviolent resistance. Strategic argument, not only a moral one."},
- {q:"True peace is not merely the absence of tension; it is the presence of justice.",a:"Martin Luther King Jr.",w:["Nelson Mandela","Mahatma Gandhi","Desmond Tutu"],c:"Justice",d:"Intermediate",
-  e:"Recurring theme in King's writing — peace means substantive fairness, not just quiet."},
- {q:"Justice is truth in action.",a:"Benjamin Disraeli",w:["William Gladstone","Edmund Burke","Winston Churchill"],c:"Justice",d:"Intermediate",
-  e:"From Disraeli's 1851 speech in the House of Commons."},
+    { lv: 1, kind: "who", q: "When they go low, we go high.",
+      a: "Michelle Obama", w: ["Oprah Winfrey", "Kamala Harris", "Hillary Clinton"],
+      src: "Democratic National Convention speech, 2016",
+      ctx: "She shared the motto her family lived by: answer cruelty with dignity." },
 
- /* ---------- LEADERSHIP ---------- */
- {q:"A leader is one who knows the way, goes the way, and shows the way.",a:"John C. Maxwell",w:["Jim Rohn","Stephen Covey","Peter Drucker"],c:"Leadership",d:"Intermediate",
-  e:"From Maxwell's leadership writing. Defines leadership as competence plus action plus example."},
- {q:"The greatest leader is not necessarily the one who does the greatest things. He is the one that gets the people to do the greatest things.",a:"Ronald Reagan",w:["John F. Kennedy","Theodore Roosevelt","Franklin D. Roosevelt"],c:"Leadership",d:"Intermediate",
-  e:"Reagan often used this framing to describe delegation and culture-building."},
- {q:"If your actions inspire others to dream more, learn more, do more and become more, you are a leader.",a:"John Quincy Adams",w:["John Adams","Thomas Jefferson","Theodore Roosevelt"],c:"Leadership",d:"Beginner",
-  e:"Widely attributed to JQA. Leadership is measured by the growth of others, not by personal output."},
- {q:"I must follow the people. Am I not their leader?",a:"Benjamin Disraeli",w:["William Gladstone","Winston Churchill","David Lloyd George"],c:"Leadership",d:"Advanced",
-  e:"Attributed to Disraeli. A wry note on the gap between formal authority and actual influence."},
- {q:"The function of leadership is to produce more leaders, not more followers.",a:"Ralph Nader",w:["John F. Kennedy","Eleanor Roosevelt","Cesar Chavez"],c:"Leadership",d:"Advanced",
-  e:"Nader's framing: real leadership is multiplicative, not concentrative."},
- {q:"Lead from the back — and let others believe they are in front.",a:"Nelson Mandela",w:["Desmond Tutu","Martin Luther King Jr.","Mahatma Gandhi"],c:"Leadership",d:"Intermediate",
-  e:"Mandela's metaphor from herding cattle as a child. Influence over visibility."},
+    { lv: 1, kind: "who", q: "Change will not come if we wait for some other person or some other time. We are the ones we've been waiting for.",
+      a: "Barack Obama", w: ["Joe Biden", "Bill Clinton", "John Lewis"],
+      src: "Super Tuesday speech, 2008",
+      ctx: "A call for ordinary people to take action rather than wait for someone else to fix things." },
 
- /* ---------- MONEY & WORK ---------- */
- {q:"Pleasure in the job puts perfection in the work.",a:"Aristotle",w:["Plato","Confucius","Seneca"],c:"Money and Work",d:"Intermediate",
-  e:"Aristotle's Nicomachean Ethics: craft quality follows from craft enjoyment."},
- {q:"Beware of little expenses; a small leak will sink a great ship.",a:"Benjamin Franklin",w:["Andrew Carnegie","John D. Rockefeller","Thomas Jefferson"],c:"Money and Work",d:"Beginner",
-  e:"From Poor Richard's Almanack. Compound small leaks beat occasional big wins."},
- {q:"A penny saved is a penny earned.",a:"Benjamin Franklin",w:["Andrew Carnegie","Mark Twain","Thomas Jefferson"],c:"Money and Work",d:"Beginner",
-  e:"Popularized by Franklin's Poor Richard's Almanack. The core idea: saved income is real income."},
- {q:"The lack of money is the root of all evil.",a:"Mark Twain",w:["Oscar Wilde","George Bernard Shaw","Charles Dickens"],c:"Money and Work",d:"Intermediate",
-  e:"Twain's inversion of the older \"love of money\" line. A jab at moralizing about poverty."},
- {q:"Do not save what is left after spending, but spend what is left after saving.",a:"Warren Buffett",w:["Benjamin Graham","Charlie Munger","John C. Bogle"],c:"Money and Work",d:"Intermediate",
-  e:"Buffett's order-of-operations rule for personal finance: pay yourself first."},
- {q:"Whether you think you can, or you think you can't — you're right.",a:"Henry Ford",w:["Andrew Carnegie","Thomas Edison","John D. Rockefeller"],c:"Money and Work",d:"Beginner",
-  e:"Attributed to Henry Ford. A short note that belief shapes follow-through."},
- {q:"Without labor nothing prospers.",a:"Sophocles",w:["Homer","Aristotle","Plato"],c:"Money and Work",d:"Advanced",
-  e:"From Sophocles. Effort is treated as the engine of all flourishing."},
- {q:"Money often costs too much.",a:"Ralph Waldo Emerson",w:["Henry David Thoreau","Mark Twain","Walt Whitman"],c:"Money and Work",d:"Advanced",
-  e:"From Emerson's essay The Conduct of Life. A warning about what is traded for income."},
+    { lv: 1, kind: "who", q: "A life is not important except in the impact it has on other lives.",
+      a: "Jackie Robinson", w: ["Jesse Owens", "Joe Louis", "Hank Aaron"],
+      src: "Engraved on his gravestone in Brooklyn",
+      ctx: "Robinson broke Major League Baseball's color barrier in 1947 and spent his life fighting for civil rights." },
 
- /* ---------- CRITICAL THINKING ---------- */
- {q:"The unexamined life is not worth living.",a:"Socrates",w:["Plato","Aristotle","Epictetus"],c:"Critical Thinking",d:"Beginner",
-  e:"From Plato's Apology. Socrates argues that reflection is what makes a life properly human."},
- {q:"It is the mark of an educated mind to be able to entertain a thought without accepting it.",a:"Aristotle",w:["Socrates","Plato","Marcus Aurelius"],c:"Critical Thinking",d:"Intermediate",
-  e:"Attributed to Aristotle. The skill of holding ideas at arm's length is treated as core to education."},
- {q:"Doubt is the origin of wisdom.",a:"René Descartes",w:["Immanuel Kant","Voltaire","David Hume"],c:"Critical Thinking",d:"Intermediate",
-  e:"Descartes' methodological doubt: real understanding begins by questioning what you assume."},
- {q:"I think, therefore I am.",a:"René Descartes",w:["Immanuel Kant","John Locke","Voltaire"],c:"Critical Thinking",d:"Beginner",
-  e:"\"Cogito, ergo sum,\" from Descartes' 1637 Discourse on the Method."},
- {q:"The first principle is that you must not fool yourself — and you are the easiest person to fool.",a:"Richard Feynman",w:["Carl Sagan","Albert Einstein","Stephen Hawking"],c:"Critical Thinking",d:"Intermediate",
-  e:"From Feynman's 1974 Caltech commencement address on \"cargo cult science.\""},
- {q:"It is not because things are difficult that we do not dare; it is because we do not dare that they are difficult.",a:"Seneca",w:["Marcus Aurelius","Epictetus","Cicero"],c:"Critical Thinking",d:"Advanced",
-  e:"Seneca's Stoic point: hesitation manufactures the obstacle, not the task itself."},
+    { lv: 1, kind: "who", q: "I'm sick and tired of being sick and tired.",
+      a: "Fannie Lou Hamer", w: ["Rosa Parks", "Ella Baker", "Coretta Scott King"],
+      src: "Speech, 1964 (also on her gravestone)",
+      ctx: "A Mississippi sharecropper who was beaten for trying to register to vote, she became one of the most powerful voices for voting rights." },
 
- /* ---------- CREATIVITY ---------- */
- {q:"Imagination is more important than knowledge.",a:"Albert Einstein",w:["Isaac Newton","Marie Curie","Nikola Tesla"],c:"Creativity",d:"Beginner",
-  e:"Einstein, in a 1929 Saturday Evening Post interview. Frames imagination as the engine that uses knowledge."},
- {q:"Creativity takes courage.",a:"Henri Matisse",w:["Pablo Picasso","Vincent van Gogh","Salvador Dalí"],c:"Creativity",d:"Beginner",
-  e:"Matisse: creative work means risking judgment in public."},
- {q:"There is no greater agony than bearing an untold story inside you.",a:"Maya Angelou",w:["Toni Morrison","Zora Neale Hurston","Alice Walker"],c:"Creativity",d:"Intermediate",
-  e:"From Maya Angelou's I Know Why the Caged Bird Sings."},
- {q:"Every artist was first an amateur.",a:"Ralph Waldo Emerson",w:["Henry David Thoreau","Walt Whitman","Mark Twain"],c:"Creativity",d:"Intermediate",
-  e:"Emerson's reminder that skill is built, not granted, and that beginners are the seed of every master."},
- {q:"Simplicity is the ultimate sophistication.",a:"Leonardo da Vinci",w:["Michelangelo","Galileo Galilei","Isaac Newton"],c:"Creativity",d:"Intermediate",
-  e:"Long attributed to Leonardo. The design principle: refinement removes, not adds."},
- {q:"I would rather die of passion than of boredom.",a:"Vincent van Gogh",w:["Pablo Picasso","Salvador Dalí","Henri Matisse"],c:"Creativity",d:"Advanced",
-  e:"Attributed to van Gogh. A defense of intensity over comfort in creative life."},
+    { lv: 1, kind: "who", q: "Hold fast to dreams\nFor if dreams die\nLife is a broken-winged bird\nThat cannot fly.",
+      a: "Langston Hughes", w: ["Paul Laurence Dunbar", "Countee Cullen", "Claude McKay"],
+      src: "The poem “Dreams,” 1920s",
+      ctx: "Hughes was a leading voice of the Harlem Renaissance, writing about the hopes and struggles of everyday Black life." },
 
- /* ---------- DISCIPLINE ---------- */
- {q:"We are what we repeatedly do. Excellence, then, is not an act, but a habit.",a:"Will Durant",w:["Aristotle","Marcus Aurelius","Epictetus"],c:"Discipline",d:"Advanced",
-  e:"From Will Durant's The Story of Philosophy (1926), summarizing Aristotle. Commonly misattributed directly to Aristotle."},
- {q:"Discipline is the bridge between goals and accomplishment.",a:"Jim Rohn",w:["Stephen Covey","John C. Maxwell","Tony Robbins"],c:"Discipline",d:"Intermediate",
-  e:"Rohn's framing: motivation is the spark, discipline is the structure that gets work shipped."},
- {q:"Patience is bitter, but its fruit is sweet.",a:"Jean-Jacques Rousseau",w:["Voltaire","Aristotle","Confucius"],c:"Discipline",d:"Intermediate",
-  e:"From Rousseau's writings. Often misattributed to Aristotle online."},
- {q:"He who is not a good servant will not be a good master.",a:"Plato",w:["Aristotle","Socrates","Cicero"],c:"Discipline",d:"Advanced",
-  e:"Plato's claim that the ability to follow well is a prerequisite for leading well."},
- {q:"Energy and persistence conquer all things.",a:"Benjamin Franklin",w:["Thomas Jefferson","George Washington","John Adams"],c:"Discipline",d:"Intermediate",
-  e:"Franklin's compact formula: sustained effort beats brilliance plus a quick burnout."},
- {q:"Slow and steady wins the race.",a:"Aesop",w:["Homer","Plato","Sophocles"],c:"Discipline",d:"Beginner",
-  e:"Moral of Aesop's fable The Tortoise and the Hare."},
+    { lv: 1, kind: "verify", q: "Be yourself; everyone else is already taken.", who: "Oscar Wilde", real: false,
+      src: "No evidence Wilde ever wrote or said it. It appears decades after his death.",
+      ctx: "This is one of the most widely shared misattributed quotes online." },
 
- /* ---------- COMMUNITY ---------- */
- {q:"No one is useless in this world who lightens the burden of it for anyone else.",a:"Charles Dickens",w:["Victor Hugo","Mark Twain","Oscar Wilde"],c:"Community",d:"Intermediate",
-  e:"From Dickens' Our Mutual Friend. A defense of small, ordinary kindness as real social value."},
- {q:"We may have all come on different ships, but we're in the same boat now.",a:"Martin Luther King Jr.",w:["Frederick Douglass","Malcolm X","W.E.B. Du Bois"],c:"Community",d:"Intermediate",
-  e:"King's image of shared fate across communities in a country built by many migrations and forced migrations."},
- {q:"Service to others is the rent you pay for your room here on earth.",a:"Muhammad Ali",w:["Maya Angelou","Mahatma Gandhi","Martin Luther King Jr."],c:"Community",d:"Intermediate",
-  e:"Ali used this line repeatedly in interviews. A claim that civic contribution is a baseline, not extra credit."},
- {q:"The best way to find yourself is to lose yourself in the service of others.",a:"Mahatma Gandhi",w:["Mother Teresa","Desmond Tutu","Nelson Mandela"],c:"Community",d:"Beginner",
-  e:"Gandhi's frame: identity is forged through usefulness to others."},
- {q:"Alone we can do so little; together we can do so much.",a:"Helen Keller",w:["Eleanor Roosevelt","Susan B. Anthony","Florence Nightingale"],c:"Community",d:"Beginner",
-  e:"Helen Keller's argument for cooperation, drawn from her work with disability advocacy groups."},
- {q:"A people without the knowledge of their past history, origin and culture is like a tree without roots.",a:"Marcus Garvey",w:["W.E.B. Du Bois","Malcolm X","Frederick Douglass"],c:"Community",d:"Intermediate",
-  e:"Garvey treated cultural history as load-bearing infrastructure for any community's future."},
+    { lv: 1, kind: "verify", q: "Success is not final, failure is not fatal: it is the courage to continue that counts.", who: "Winston Churchill", real: false,
+      src: "Researchers of Churchill's speeches and writings have found no record of it.",
+      ctx: "Famous names get attached to inspiring lines because it makes them more shareable." },
 
- /* ---------- HISTORY ---------- */
- {q:"Those who cannot remember the past are condemned to repeat it.",a:"George Santayana",w:["Winston Churchill","Edmund Burke","Mark Twain"],c:"History",d:"Intermediate",
-  e:"From Santayana's The Life of Reason (1905). Frequently misattributed to Churchill online."},
- {q:"History will be kind to me, for I intend to write it.",a:"Winston Churchill",w:["Franklin D. Roosevelt","Charles de Gaulle","Theodore Roosevelt"],c:"History",d:"Advanced",
-  e:"Churchill's dry remark about narrative power. Underscores who controls the record."},
- {q:"What is history but a fable agreed upon?",a:"Napoleon Bonaparte",w:["Voltaire","Otto von Bismarck","Niccolò Machiavelli"],c:"History",d:"Advanced",
-  e:"Attributed to Napoleon. A reminder that history is also a curated story, not raw fact."},
- {q:"The more you know about the past, the better prepared you are for the future.",a:"Theodore Roosevelt",w:["Franklin D. Roosevelt","Abraham Lincoln","Woodrow Wilson"],c:"History",d:"Beginner",
-  e:"Roosevelt argued historical literacy is a practical decision-making tool, not just culture."},
- {q:"I know no way of judging the future but by the past.",a:"Patrick Henry",w:["Thomas Jefferson","John Adams","Benjamin Franklin"],c:"History",d:"Advanced",
-  e:"Patrick Henry's 1775 \"Liberty or Death\" speech. Pattern-matching from history as a planning tool."},
- {q:"The farther backward you can look, the farther forward you are likely to see.",a:"Winston Churchill",w:["Theodore Roosevelt","Franklin D. Roosevelt","Charles de Gaulle"],c:"History",d:"Intermediate",
-  e:"Churchill's compact framing of long-horizon thinking grounded in historical depth."},
+    { lv: 1, kind: "verify", q: "Be the change that you wish to see in the world.", who: "Mahatma Gandhi", real: false,
+      src: "Not found in Gandhi's writings. It's a modern summary of a longer 1913 idea: “If we could change ourselves, the tendencies in the world would also change.”",
+      ctx: "The spirit is close to his thinking — but these exact words aren't his." },
 
- /* ---------- TECHNOLOGY & CHANGE ---------- */
- {q:"Be the change that you wish to see in the world.",a:"Mahatma Gandhi",w:["Martin Luther King Jr.","Nelson Mandela","Desmond Tutu"],c:"Technology and Change",d:"Beginner",
-  e:"Closely paraphrased from Gandhi's writings. Personal alignment as the first lever of public change."},
- {q:"It is not the strongest of the species that survives, nor the most intelligent that survives. It is the one most adaptable to change.",a:"Leon C. Megginson",w:["Charles Darwin","Herbert Spencer","Thomas Henry Huxley"],c:"Technology and Change",d:"Advanced",
-  e:"Often misattributed to Darwin. Actually a 1963 paraphrase by management professor Leon C. Megginson interpreting Origin of Species."},
- {q:"Any sufficiently advanced technology is indistinguishable from magic.",a:"Arthur C. Clarke",w:["Isaac Asimov","Carl Sagan","Robert A. Heinlein"],c:"Technology and Change",d:"Intermediate",
-  e:"Clarke's Third Law, from his 1962 essay collection Profiles of the Future."},
- {q:"The advance of technology is based on making it fit in so that you don't really even notice it, so it's part of everyday life.",a:"Bill Gates",w:["Steve Jobs","Mark Zuckerberg","Larry Page"],c:"Technology and Change",d:"Intermediate",
-  e:"Gates' framing of mature tech as invisible infrastructure rather than spectacle."},
- {q:"Innovation distinguishes between a leader and a follower.",a:"Steve Jobs",w:["Bill Gates","Jeff Bezos","Elon Musk"],c:"Technology and Change",d:"Beginner",
-  e:"Jobs in a 2001 Apple keynote / interview. Treats novel direction as the marker of leadership in tech."},
- {q:"The future depends on what you do today.",a:"Mahatma Gandhi",w:["Martin Luther King Jr.","Nelson Mandela","Desmond Tutu"],c:"Technology and Change",d:"Beginner",
-  e:"Gandhi's call to act now. Tomorrow's options are this morning's decisions, compounded."},
- {q:"There is nothing permanent except change.",a:"Heraclitus",w:["Socrates","Plato","Pythagoras"],c:"Technology and Change",d:"Intermediate",
-  e:"From the pre-Socratic philosopher Heraclitus, c. 500 BCE."},
- {q:"Progress is impossible without change, and those who cannot change their minds cannot change anything.",a:"George Bernard Shaw",w:["Oscar Wilde","Mark Twain","Bertrand Russell"],c:"Technology and Change",d:"Advanced",
-  e:"From Shaw's 1944 Everybody's Political What's What. Intellectual flexibility framed as the precondition for progress."}
-];
+    { lv: 1, kind: "verify", q: "Insanity is doing the same thing over and over again and expecting different results.", who: "Albert Einstein", real: false,
+      src: "No evidence Einstein said it. One of the earliest known versions appeared in a 1981 recovery-program publication.",
+      ctx: "Einstein is one of the most misquoted people in history." },
 
-/* ============================================================
-   Game logic
-   ============================================================ */
-const ROUNDS = 10;
-let state = {q:[], i:0, score:0, locked:false};
+    { lv: 1, kind: "verify", q: "Education is the most powerful weapon which you can use to change the world.", who: "Nelson Mandela", real: true,
+      src: "Real — from a 2003 speech in Johannesburg launching an education network.",
+      ctx: "Mandela spent 27 years in prison, earned his law degree by correspondence, and believed education was the path to freedom." },
 
-const $ = id => document.getElementById(id);
-function show(name){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  $('screen-' + name).classList.add('active');
-  window.scrollTo({top:0,behavior:'instant'});
-}
-function shuffle(a){
-  const arr=a.slice();
-  for(let i=arr.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]]=[arr[j],arr[i]];
+    { lv: 1, kind: "verify", q: "Darkness cannot drive out darkness; only light can do that. Hate cannot drive out hate; only love can do that.", who: "Martin Luther King Jr.", real: true,
+      src: "Real — from his book of sermons, Strength to Love, 1963.",
+      ctx: "King believed nonviolence and love were not weakness, but power." },
+
+    { lv: 1, kind: "verify", q: "The report of my death was an exaggeration.", who: "Mark Twain", real: true,
+      src: "Real — Twain told a New York Journal reporter in 1897, after rumors spread that he was dying.",
+      ctx: "It's often misquoted as “greatly exaggerated,” but the core line is his." },
+
+    { lv: 1, kind: "verify", q: "The unexamined life is not worth living.", who: "Socrates", real: true,
+      src: "Real — spoken by Socrates at his trial, as recorded by his student Plato in the Apology.",
+      ctx: "Socrates wrote nothing himself. We know his words through Plato and others." },
+
+    { lv: 1, kind: "verify", q: "Stay hungry. Stay foolish.", who: "Steve Jobs", real: true,
+      src: "Real — Jobs said it in his 2005 Stanford commencement speech.",
+      ctx: "But he was quoting someone else: it was the farewell message on the back of the final Whole Earth Catalog in 1974, and he credited it." },
+
+    { lv: 1, kind: "verify", q: "A house divided against itself cannot stand.", who: "Abraham Lincoln", real: true,
+      src: "Real — from Lincoln's 1858 speech on slavery.",
+      ctx: "Lincoln borrowed the phrase from the Bible (Mark 3:25) to warn that the nation couldn't stay half slave and half free." },
+
+    /* ===================== EVERYDAY ===================== */
+    { lv: 2, kind: "who", q: "Not everything that is faced can be changed, but nothing can be changed until it is faced.",
+      a: "James Baldwin", w: ["Richard Wright", "Ralph Ellison", "Langston Hughes"],
+      src: "The New York Times Book Review, 1962",
+      ctx: "Baldwin's essays challenged America to look honestly at race — the first step toward change." },
+
+    { lv: 2, kind: "who", q: "You may write me down in history\nWith your bitter, twisted lies,\nYou may trod me in the very dirt\nBut still, like dust, I'll rise.",
+      a: "Maya Angelou", w: ["Toni Morrison", "Alice Walker", "Nikki Giovanni"],
+      src: "The poem “Still I Rise,” 1978",
+      ctx: "One of the most beloved poems of resilience ever written." },
+
+    { lv: 2, kind: "who", q: "If there's a book that you want to read, but it hasn't been written yet, then you must write it.",
+      a: "Toni Morrison", w: ["Alice Walker", "Gwendolyn Brooks", "Maya Angelou"],
+      src: "Speech, 1981",
+      ctx: "Morrison, a Nobel Prize winner, wrote the stories she wished existed — a message for any creator or entrepreneur." },
+
+    { lv: 2, kind: "who", q: "The problem of the twentieth century is the problem of the color-line.",
+      a: "W.E.B. Du Bois", w: ["Booker T. Washington", "Marcus Garvey", "Carter G. Woodson"],
+      src: "The Souls of Black Folk, 1903",
+      ctx: "Du Bois, the first Black American to earn a Harvard PhD, co-founded the NAACP." },
+
+    { lv: 2, kind: "who", q: "Success is to be measured not so much by the position that one has reached in life as by the obstacles which he has overcome.",
+      a: "Booker T. Washington", w: ["George Washington Carver", "W.E.B. Du Bois", "Frederick Douglass"],
+      src: "Up From Slavery, 1901",
+      ctx: "Born enslaved, Washington built the Tuskegee Institute into a major center of Black education." },
+
+    { lv: 2, kind: "who", q: "Education is the passport to the future, for tomorrow belongs to those who prepare for it today.",
+      a: "Malcolm X", w: ["Martin Luther King Jr.", "Medgar Evers", "Stokely Carmichael"],
+      src: "Speech at the founding rally of the Organization of Afro-American Unity, 1964",
+      ctx: "Malcolm X educated himself in prison by copying the dictionary page by page." },
+
+    { lv: 2, kind: "who", q: "Let us put our moneys together; let us use our moneys; let us put our money out at usury among ourselves, and reap the benefit ourselves.",
+      a: "Maggie L. Walker", w: ["Madam C.J. Walker", "Mary McLeod Bethune", "Ida B. Wells"],
+      src: "Speech, 1901",
+      ctx: "In 1903 she founded the St. Luke Penny Savings Bank in Richmond, Virginia, becoming the first woman to charter a bank in the U.S. — a pioneer of community wealth-building." },
+
+    { lv: 2, kind: "who", q: "I am a woman who came from the cotton fields of the South. From there I was promoted to the washtub… And from there I promoted myself into the business of manufacturing hair goods and preparations.",
+      a: "Madam C.J. Walker", w: ["Maggie L. Walker", "Annie Turnbo Malone", "Mary McLeod Bethune"],
+      src: "National Negro Business League convention, 1912",
+      ctx: "Born to formerly enslaved parents, she built a hair-care business and became one of the most successful self-made businesswomen of her time." },
+
+    { lv: 2, kind: "who", q: "The only tired I was, was tired of giving in.",
+      a: "Rosa Parks", w: ["Claudette Colvin", "Fannie Lou Hamer", "Daisy Bates"],
+      src: "Rosa Parks: My Story, 1992",
+      ctx: "She corrected the myth that she kept her bus seat in 1955 because her feet hurt. It was a deliberate act of resistance." },
+
+    { lv: 2, kind: "who", q: "Get in good trouble, necessary trouble.",
+      a: "John Lewis", w: ["Julian Bond", "Andrew Young", "Jesse Jackson"],
+      src: "Repeated in speeches for decades, and posted in 2018",
+      ctx: "Lewis was beaten on the Edmund Pettus Bridge in 1965 and later served in Congress for over 30 years." },
+
+    { lv: 2, kind: "who", q: "What does not kill me makes me stronger.",
+      a: "Friedrich Nietzsche", w: ["Søren Kierkegaard", "Arthur Schopenhauer", "Jean-Paul Sartre"],
+      src: "Twilight of the Idols, 1888",
+      ctx: "Often repeated as “What doesn't kill you makes you stronger.”" },
+
+    { lv: 2, kind: "who", q: "Everything can be taken from a man but one thing: the last of the human freedoms — to choose one's attitude in any given set of circumstances.",
+      a: "Viktor Frankl", w: ["Carl Jung", "Sigmund Freud", "Elie Wiesel"],
+      src: "Man's Search for Meaning, 1946",
+      ctx: "Frankl, a psychiatrist, wrote this after surviving Nazi concentration camps." },
+
+    { lv: 2, kind: "who", q: "Life is like riding a bicycle. To keep your balance, you must keep moving.",
+      a: "Albert Einstein", w: ["Thomas Edison", "Mark Twain", "Richard Feynman"],
+      src: "Letter to his son Eduard, 1930",
+      ctx: "A father's advice to a son going through a hard time." },
+
+    { lv: 2, kind: "verify", q: "People will forget what you said, people will forget what you did, but people will never forget how you made them feel.", who: "Maya Angelou", real: false,
+      src: "Misattributed. A version appeared in 1971, credited to Carl W. Buehner, before it was linked to Angelou.",
+      ctx: "Angelou may have repeated it, but researchers trace it to earlier sources." },
+
+    { lv: 2, kind: "verify", q: "The secret of getting ahead is getting started.", who: "Mark Twain", real: false,
+      src: "No evidence Twain said it. It was attached to his name long after his death.",
+      ctx: "Twain gets credit for countless witty lines he never wrote." },
+
+    { lv: 2, kind: "verify", q: "Compound interest is the eighth wonder of the world.", who: "Albert Einstein", real: false,
+      src: "No evidence Einstein ever said it. It started appearing decades after his death.",
+      ctx: "Compound interest really is powerful — but this famous money quote isn't Einstein's." },
+
+    { lv: 2, kind: "verify", q: "An investment in knowledge pays the best interest.", who: "Benjamin Franklin", real: false,
+      src: "Not found in Franklin's writings. It was credited to him in the 20th century.",
+      ctx: "Franklin wrote plenty about money and thrift — just not this line." },
+
+    { lv: 2, kind: "verify", q: "Well-behaved women seldom make history.", who: "Marilyn Monroe", real: false,
+      src: "Written by historian Laurel Thatcher Ulrich in a 1976 scholarly article.",
+      ctx: "Ulrich later wrote a whole book with this title about how quotes travel." },
+
+    { lv: 2, kind: "verify", q: "I freed a thousand slaves. I could have freed a thousand more if only they knew they were slaves.", who: "Harriet Tubman", real: false,
+      src: "No historical record of Tubman saying this. It spread online in recent decades.",
+      ctx: "Tubman's real story needs no embellishment: she escaped slavery and returned again and again to guide others to freedom." },
+
+    { lv: 2, kind: "verify", q: "If there is no struggle, there is no progress.", who: "Frederick Douglass", real: true,
+      src: "Real — from his 1857 speech on West India Emancipation.",
+      ctx: "Douglass escaped slavery and became one of the most powerful speakers and writers in American history." },
+
+    { lv: 2, kind: "verify", q: "Be fearful when others are greedy and greedy when others are fearful.", who: "Warren Buffett", real: true,
+      src: "Real — from his 1986 letter to Berkshire Hathaway shareholders.",
+      ctx: "A reminder that crowds often panic or get overexcited at the worst times." },
+
+    { lv: 2, kind: "verify", q: "Don't look for the needle in the haystack. Just buy the haystack!", who: "John Bogle", real: true,
+      src: "Real — from The Little Book of Common Sense Investing, 2007.",
+      ctx: "Bogle founded Vanguard and created the first index fund for everyday investors." },
+
+    { lv: 2, kind: "verify", q: "Lost time is never found again.", who: "Benjamin Franklin", real: true,
+      src: "Real — from Poor Richard's Almanack, 1748.",
+      ctx: "Franklin's almanac was full of short sayings about time, money, and hard work." },
+
+    { lv: 2, kind: "verify", q: "Genius is one percent inspiration and ninety-nine percent perspiration.", who: "Thomas Edison", real: true,
+      src: "Real — Edison said versions of this in the early 1900s, and it was published in 1932.",
+      ctx: "Edison held over 1,000 patents and credited hard work over raw talent." },
+
+    /* ===================== EXPERT ===================== */
+    { lv: 3, kind: "who", q: "The investor's chief problem — and even his worst enemy — is likely to be himself.",
+      a: "Benjamin Graham", w: ["Warren Buffett", "John Bogle", "Charlie Munger"],
+      src: "The Intelligent Investor",
+      ctx: "Graham was Warren Buffett's teacher. His point: emotions, not markets, cause most investing mistakes." },
+
+    { lv: 3, kind: "who", q: "It is not that we have a short time to live, but that we waste a lot of it.",
+      a: "Seneca", w: ["Marcus Aurelius", "Epictetus", "Cicero"],
+      src: "On the Shortness of Life (translations vary)",
+      ctx: "A Roman Stoic philosopher's reminder that time is our most valuable resource." },
+
+    { lv: 3, kind: "who", q: "I leave you a thirst for education.",
+      a: "Mary McLeod Bethune", w: ["Nannie Helen Burroughs", "Anna Julia Cooper", "Ida B. Wells"],
+      src: "“My Last Will and Testament,” 1955",
+      ctx: "Bethune founded a school that became Bethune-Cookman University and advised President Franklin Roosevelt." },
+
+    { lv: 3, kind: "who", q: "Men are disturbed not by things, but by the views which they take of things.",
+      a: "Epictetus", w: ["Seneca", "Marcus Aurelius", "Diogenes"],
+      src: "The Enchiridion (a common translation)",
+      ctx: "Epictetus was born into slavery and became one of the most influential Stoic teachers." },
+
+    { lv: 3, kind: "who", q: "When you know a thing, to hold that you know it; and when you do not know a thing, to allow that you do not know it — this is knowledge.",
+      a: "Confucius", w: ["Mencius", "Lao Tzu", "Sun Tzu"],
+      src: "The Analects (a classic translation)",
+      ctx: "Knowing the limits of what you know is the start of real learning." },
+
+    { lv: 3, kind: "who", q: "The supreme art of war is to subdue the enemy without fighting.",
+      a: "Sun Tzu", w: ["Niccolò Machiavelli", "Confucius", "Miyamoto Musashi"],
+      src: "The Art of War, chapter 3 (a common translation)",
+      ctx: "Strategy and preparation can win without costly conflict." },
+
+    { lv: 3, kind: "who", q: "In a world deluged by irrelevant information, clarity is power.",
+      a: "Yuval Noah Harari", w: ["Malcolm Gladwell", "Neil Postman", "Marshall McLuhan"],
+      src: "21 Lessons for the 21st Century, 2018 (opening line)",
+      ctx: "A historian's warning about information overload in the digital age." },
+
+    { lv: 3, kind: "who", q: "Never forget that justice is what love looks like in public.",
+      a: "Cornel West", w: ["James Baldwin", "Martin Luther King Jr.", "Howard Thurman"],
+      src: "Speeches and lectures",
+      ctx: "West, a philosopher and activist, ties personal love to public responsibility." },
+
+    { lv: 3, kind: "who", q: "The moment we choose to love we begin to move against domination, against oppression.",
+      a: "bell hooks", w: ["Audre Lorde", "Angela Davis", "Patricia Hill Collins"],
+      src: "Outlaw Culture, 1994",
+      ctx: "hooks wrote her name in lowercase to keep the focus on her ideas, not herself." },
+
+    { lv: 3, kind: "who", q: "The way to right wrongs is to turn the light of truth upon them.",
+      a: "Ida B. Wells", w: ["Mary Church Terrell", "Anna Julia Cooper", "Frances E.W. Harper"],
+      src: "Her anti-lynching writings, 1890s",
+      ctx: "A fearless investigative journalist, Wells documented lynchings when few others dared." },
+
+    { lv: 3, kind: "who", q: "When we are no longer able to change a situation, we are challenged to change ourselves.",
+      a: "Viktor Frankl", w: ["Erich Fromm", "Elie Wiesel", "Rollo May"],
+      src: "Man's Search for Meaning, 1946",
+      ctx: "Even when we can't control what happens, we can control how we respond." },
+
+    { lv: 3, kind: "who", q: "When you want something, all the universe conspires in helping you to achieve it.",
+      a: "Paulo Coelho", w: ["Rumi", "Kahlil Gibran", "Hermann Hesse"],
+      src: "The Alchemist, 1988",
+      ctx: "A novel about following your dreams that has sold tens of millions of copies." },
+
+    { lv: 3, kind: "who", q: "There are years that ask questions and years that answer.",
+      a: "Zora Neale Hurston", w: ["Nella Larsen", "Gwendolyn Brooks", "Toni Morrison"],
+      src: "Their Eyes Were Watching God, 1937",
+      ctx: "Hurston was a novelist and anthropologist of the Harlem Renaissance. Her work was nearly forgotten until Alice Walker helped revive it." },
+
+    { lv: 3, kind: "verify", q: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", who: "Aristotle", real: false,
+      src: "These are historian Will Durant's words, summarizing Aristotle in his 1926 book The Story of Philosophy.",
+      ctx: "The idea is Aristotle's, but the famous phrasing is Durant's." },
+
+    { lv: 3, kind: "verify", q: "In the midst of chaos, there is also opportunity.", who: "Sun Tzu", real: false,
+      src: "Not found in The Art of War.",
+      ctx: "Ancient thinkers often get credit for modern motivational lines." },
+
+    { lv: 3, kind: "verify", q: "It does not matter how slowly you go as long as you do not stop.", who: "Confucius", real: false,
+      src: "Not found in the Analects or other records of Confucius's teachings.",
+      ctx: "A great message — just not a documented Confucius quote." },
+
+    { lv: 3, kind: "verify", q: "It is not the strongest of the species that survives, nor the most intelligent, but the one most responsive to change.", who: "Charles Darwin", real: false,
+      src: "A paraphrase by business professor Leon C. Megginson in 1963, later credited to Darwin.",
+      ctx: "Darwin never wrote this line in his books or letters." },
+
+    { lv: 3, kind: "verify", q: "Luck is what happens when preparation meets opportunity.", who: "Seneca", real: false,
+      src: "Not found in Seneca's writings, despite being widely credited to him.",
+      ctx: "Seneca wrote plenty about fortune and preparation — but not this exact line." },
+
+    { lv: 3, kind: "verify", q: "Once you learn to read, you will be forever free.", who: "Frederick Douglass", real: false,
+      src: "A modern paraphrase. In his 1845 Narrative, Douglass wrote that learning to read showed him “the pathway from slavery to freedom.”",
+      ctx: "The idea is his — but these exact words aren't." },
+
+    { lv: 3, kind: "verify", q: "Your silence will not protect you.", who: "Audre Lorde", real: true,
+      src: "Real — from her 1977 talk “The Transformation of Silence into Language and Action,” published in Sister Outsider.",
+      ctx: "Lorde, who called herself a “Black, lesbian, mother, warrior, poet,” urged people to speak up." },
+
+    { lv: 3, kind: "verify", q: "Unbought and unbossed.", who: "Shirley Chisholm", real: true,
+      src: "Real — her 1968 campaign slogan and the title of her 1970 autobiography.",
+      ctx: "Chisholm became the first Black woman elected to Congress in 1968 and ran for president in 1972." },
+
+    { lv: 3, kind: "verify", q: "Children have never been very good at listening to their elders, but they have never failed to imitate them.", who: "James Baldwin", real: true,
+      src: "Real — from his 1961 essay collection Nobody Knows My Name.",
+      ctx: "A reminder for parents: kids learn money habits more from what we do than what we say." }
+  ];
+
+  const PER_ROUND = 10;
+  const MIX = { 1: 3, 2: 4, 3: 3 };
+  const LEVEL_NAME = { 1: "Beginner", 2: "Everyday", 3: "Expert" };
+
+  let level = "mix";
+  let round = [];
+  let idx = 0;
+  let score = 0;
+  let answered = false;
+  let history = [];
+  let roundsPlayed = 0;
+  const seen = new Set();
+
+  const rootEl = document.getElementById("wgra-ws-root");
+  const introEl = document.getElementById("wgra-ws-intro");
+  const playEl = document.getElementById("wgra-ws-play");
+  const resultsEl = document.getElementById("wgra-ws-results");
+  const levelsEl = document.getElementById("wgra-ws-levels");
+  const progressEl = document.getElementById("wgra-ws-progress");
+  const scoreEl = document.getElementById("wgra-ws-score");
+  const fillEl = document.getElementById("wgra-ws-fill");
+  const modeEl = document.getElementById("wgra-ws-mode");
+  const quoteEl = document.getElementById("wgra-ws-quote");
+  const creditEl = document.getElementById("wgra-ws-credit");
+  const optionsEl = document.getElementById("wgra-ws-options");
+  const contextEl = document.getElementById("wgra-ws-context");
+  const nextBtn = document.getElementById("wgra-ws-next");
+
+  let userInteracted = false;
+  ["click", "touchstart", "keydown", "wheel"].forEach(evt => {
+    window.addEventListener(evt, () => { userInteracted = true; }, { once: true, passive: true });
+  });
+  function scrollTo(el, block) {
+    if (!userInteracted || !el) return;
+    if (el === rootEl) { setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 80); return; }
+    setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: block || "start" }), 80);
   }
-  return arr;
-}
-function startGame(){
-  // Pick 10 random questions, weighted only by raw shuffle — keep it simple and fair.
-  const picked = shuffle(QUOTES).slice(0,ROUNDS);
-  // For each, randomize answer order:
-  state = {q: picked.map(p=>({...p, options: shuffle([p.a, ...p.w])})), i:0, score:0, locked:false};
-  renderQuestion();
-  show('q');
-}
-function renderQuestion(){
-  state.locked=false;
-  const item = state.q[state.i];
-  $('b-cat').textContent = item.c;
-  $('b-diff').textContent = item.d;
-  $('b-diff').className = 'badge diff-' + item.d;
-  $('b-prog').textContent = (state.i+1) + ' / ' + ROUNDS;
-  $('b-score').textContent = state.score + ' / ' + state.i;
-  $('b-bar').style.width = (((state.i)/ROUNDS)*100) + '%';
-  $('q-text').textContent = item.q;
-  const ansEl = $('q-answers');
-  ansEl.innerHTML = '';
-  item.options.forEach(opt=>{
-    const b=document.createElement('button');
-    b.className='answer';
-    b.textContent=opt;
-    b.addEventListener('click',()=>answer(b,opt));
-    ansEl.appendChild(b);
-  });
-  $('q-feedback').className='feedback';
-  $('q-feedback').classList.remove('show');
-}
-function answer(btn, choice){
-  if(state.locked) return;
-  state.locked=true;
-  const item = state.q[state.i];
-  const correct = choice === item.a;
-  if(correct) state.score++;
-  document.querySelectorAll('.answer').forEach(b=>{
-    b.classList.add('locked');
-    if(b.textContent === item.a) b.classList.add('correct');
-    else if(b === btn) b.classList.add('wrong');
-  });
-  const fb = $('q-feedback');
-  fb.classList.add('show');
-  fb.classList.toggle('correct', correct);
-  fb.classList.toggle('wrong', !correct);
-  const t = $('fb-title');
-  t.textContent = correct ? 'Correct' : 'Incorrect';
-  t.className = correct ? 'ok' : 'bad';
-  $('fb-who').textContent = item.a;
-  $('fb-expl').textContent = item.e;
-  $('b-score').textContent = state.score + ' / ' + (state.i+1);
-  $('b-bar').style.width = (((state.i+1)/ROUNDS)*100) + '%';
-}
-function next(){
-  state.i++;
-  if(state.i >= ROUNDS){ endGame(); return; }
-  renderQuestion();
-}
-function endGame(){
-  const pct = Math.round((state.score/ROUNDS)*100);
-  $('r-score').textContent = state.score + ' / ' + ROUNDS;
-  $('r-pct').textContent = pct + '%';
-  let rating, fb;
-  if(state.score >= 9){ rating='Knowledge Weapon Master'; fb='Sharp recall and strong attribution instincts. Keep reading primary sources.'; }
-  else if(state.score >= 7){ rating='Sharp Mind'; fb='Solid range across thinkers. A little more depth in unfamiliar categories and you are at master level.'; }
-  else if(state.score >= 5){ rating='Wisdom Builder'; fb='Good base. Spend more time with primary writings, not just quote images online.'; }
-  else if(state.score >= 3){ rating='Needs More Reading'; fb='Most people stop at vibes. Pull up a few full speeches and essays from the categories you missed.'; }
-  else{ rating='Back to the Books'; fb='No shame in resetting. Pick one category and read one full short work end to end before retrying.'; }
-  $('r-rating').textContent = rating;
-  $('r-feedback').textContent = fb;
-  show('end');
-}
 
-document.addEventListener('DOMContentLoaded',()=>{
-  $('btn-start').addEventListener('click', startGame);
-  $('btn-again').addEventListener('click', startGame);
-  $('btn-how').addEventListener('click', ()=>show('how'));
-  $('btn-how-back').addEventListener('click', ()=>show('home'));
-  $('btn-home').addEventListener('click', ()=>show('home'));
-  $('btn-next').addEventListener('click', next);
-});
+  function shuffle(a) {
+    const b = a.slice();
+    for (let i = b.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [b[i], b[j]] = [b[j], b[i]];
+    }
+    return b;
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  // About 6 "who said it" + 4 "real or misattributed" per 10, avoiding repeats
+  function pick(lv, n) {
+    const pool = Q.filter(q => q.lv === lv);
+    let fresh = pool.filter(q => !seen.has(q));
+    if (fresh.length < n) { pool.forEach(q => seen.delete(q)); fresh = pool.slice(); }
+    const who = shuffle(fresh.filter(q => q.kind === "who"));
+    const ver = shuffle(fresh.filter(q => q.kind === "verify"));
+    const nVer = Math.min(ver.length, Math.round(n * 0.4));
+    let out = ver.slice(0, nVer).concat(who.slice(0, n - nVer));
+    if (out.length < n) out = out.concat(ver.slice(nVer, nVer + (n - out.length)));
+    out.forEach(q => seen.add(q));
+    return shuffle(out);
+  }
+
+  function buildRound() {
+    if (level === "mix") {
+      let out = [];
+      [1, 2, 3].forEach(lv => { out = out.concat(pick(lv, MIX[lv])); });
+      return out;
+    }
+    return pick(parseInt(level, 10), PER_ROUND);
+  }
+
+  function start() {
+    round = buildRound().map(q => ({ q: q, opts: q.kind === "who" ? shuffle([q.a].concat(q.w)) : null }));
+    idx = 0; score = 0; history = []; roundsPlayed++;
+    introEl.style.display = "none";
+    resultsEl.style.display = "none";
+    playEl.style.display = "block";
+    rootEl.classList.remove("is-intro");
+    render();
+    scrollTo(rootEl);
+  }
+
+  function render() {
+    const item = round[idx];
+    const q = item.q;
+    answered = false;
+    progressEl.textContent = "Question " + (idx + 1) + " of " + round.length + " · " + LEVEL_NAME[q.lv];
+    scoreEl.textContent = score;
+    fillEl.style.width = (idx / round.length * 100) + "%";
+    contextEl.innerHTML = "";
+    optionsEl.innerHTML = "";
+    quoteEl.textContent = q.q;
+    nextBtn.disabled = true;
+    nextBtn.textContent = "Choose an answer";
+
+    if (q.kind === "who") {
+      modeEl.textContent = "🗣️ Who said it?";
+      creditEl.innerHTML = "";
+      item.opts.forEach(name => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "wgra-ws-opt";
+        b.textContent = name;
+        b.dataset.val = name;
+        b.addEventListener("click", () => answer(name));
+        optionsEl.appendChild(b);
+      });
+    } else {
+      modeEl.textContent = "🔍 Real or misattributed?";
+      creditEl.innerHTML = "Often credited to: <strong>" + esc(q.who) + "</strong>";
+      [["real", "✅ Real — they said it"], ["fake", "❌ Misattributed"]].forEach(pair => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "wgra-ws-opt";
+        b.textContent = pair[1];
+        b.dataset.val = pair[0];
+        b.addEventListener("click", () => answer(pair[0]));
+        optionsEl.appendChild(b);
+      });
+    }
+  }
+
+  function answer(val) {
+    if (answered) return;
+    answered = true;
+    const q = round[idx].q;
+    const correctVal = q.kind === "who" ? q.a : (q.real ? "real" : "fake");
+    const ok = val === correctVal;
+    optionsEl.querySelectorAll("button").forEach(b => {
+      b.disabled = true;
+      if (b.dataset.val === correctVal) b.classList.add("is-right");
+      else if (b.dataset.val === val) b.classList.add("is-wrong");
+    });
+    if (ok) score++;
+    scoreEl.textContent = score;
+    fillEl.style.width = ((idx + 1) / round.length * 100) + "%";
+
+    let head;
+    if (q.kind === "who") {
+      head = ok ? '<span class="wgra-ws-ok">Correct! ✅</span> It was <strong>' + esc(q.a) + "</strong>."
+                : '<span class="wgra-ws-no">Not quite ❌</span> It was <strong>' + esc(q.a) + "</strong>.";
+    } else {
+      const verdict = q.real ? "This one is <strong>real</strong>." : "This one is <strong>misattributed</strong> — no reliable evidence " + esc(q.who) + " said it.";
+      head = (ok ? '<span class="wgra-ws-ok">Correct! ✅</span> ' : '<span class="wgra-ws-no">Not quite ❌</span> ') + verdict;
+    }
+    contextEl.innerHTML = head + " " + esc(q.ctx) +
+      '<div class="wgra-ws-source">📖 <strong>Source:</strong> ' + esc(q.src) + "</div>";
+
+    history.push({
+      q: q, ok: ok,
+      chosen: q.kind === "who" ? val : (val === "real" ? "Real" : "Misattributed"),
+      correct: q.kind === "who" ? q.a : (q.real ? "Real" : "Misattributed")
+    });
+
+    nextBtn.disabled = false;
+    nextBtn.textContent = idx < round.length - 1 ? "Next quote" : "See my results";
+    scrollTo(contextEl, "center");
+  }
+
+  function results() {
+    playEl.style.display = "none";
+    resultsEl.style.display = "block";
+    const pct = Math.round(score / round.length * 100);
+    const whoH = history.filter(h => h.q.kind === "who");
+    const verH = history.filter(h => h.q.kind === "verify");
+    const whoRight = whoH.filter(h => h.ok).length;
+    const verRight = verH.filter(h => h.ok).length;
+
+    let title;
+    if (pct === 100) title = "Legendary Quote Master 🏆";
+    else if (pct >= 70) title = "Serious Thinker Energy 💡";
+    else if (pct >= 40) title = "Building Your Mental Library 📖";
+    else title = "Every Master Starts as a Beginner 🌱";
+
+    const review = history.map((h, i) =>
+      '<div class="wgra-ws-review"><div class="wgra-q">' + (i + 1) + ". “" + esc(h.q.q) + "”" +
+      (h.q.kind === "verify" ? " <span style=\"font-family:system-ui;font-size:14px;color:#cfcfcf;\">(credited to " + esc(h.q.who) + ")</span>" : "") + "</div>" +
+      "<div>" + (h.ok ? '<span class="wgra-ws-ok">Correct ✅</span> ' : '<span class="wgra-ws-no">Not quite ❌</span> You chose: ' + esc(h.chosen) + " · ") +
+      "Answer: <strong>" + esc(h.correct) + "</strong></div>" +
+      '<div class="wgra-ctx">📖 ' + esc(h.q.src) + "</div></div>"
+    ).join("");
+
+    resultsEl.innerHTML =
+      '<div class="wgra-ws-big">' + score + " / " + round.length + "</div>" +
+      '<div class="wgra-ws-msg"><strong>' + title + "</strong><br>" +
+        (whoH.length ? "Who said it: " + whoRight + " of " + whoH.length : "") +
+        (verH.length ? " · Real or misattributed: " + verRight + " of " + verH.length : "") + "</div>" +
+      '<div class="wgra-ws-actions">' +
+        '<button type="button" class="wgra-ws-btn" id="wgra-ws-again">Play again</button>' +
+        '<button type="button" class="wgra-ws-btn-ghost" id="wgra-ws-change">Change level</button>' +
+      "</div>" +
+      '<div class="wgra-ws-h3">Review this round</div>' + review;
+
+    document.getElementById("wgra-ws-again").addEventListener("click", start);
+    document.getElementById("wgra-ws-change").addEventListener("click", showIntro);
+    scrollTo(rootEl);
+  }
+
+  function showIntro() {
+    playEl.style.display = "none";
+    resultsEl.style.display = "none";
+    introEl.style.display = "block";
+    rootEl.classList.add("is-intro");
+    scrollTo(rootEl);
+  }
+
+  levelsEl.addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (!b || !b.dataset.level) return;
+    level = b.dataset.level;
+    levelsEl.querySelectorAll("button").forEach(x => {
+      const on = x === b;
+      x.classList.toggle("is-on", on);
+      x.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  });
+
+  // Android back button: during a round, ask before quitting; from the
+  // results, go back to the level picker. On the level picker, let the app
+  // ask before exiting.
+  window.wsiBack = function () {
+    if (playEl.style.display !== "none") {
+      if (window.confirm("Quit this round? Your answers so far won't count.")) showIntro();
+      return true;
+    }
+    if (resultsEl.style.display !== "none") {
+      showIntro();
+      return true;
+    }
+    return false;
+  };
+
+  document.getElementById("wgra-ws-start").addEventListener("click", start);
+  document.getElementById("wgra-ws-quit").addEventListener("click", showIntro);
+  nextBtn.addEventListener("click", () => {
+    if (!answered) return;
+    if (idx < round.length - 1) { idx++; render(); scrollTo(playEl); }
+    else results();
+  });
+})();
+</script>
+<script>
+(function () {
+  "use strict";
+  var splash = document.getElementById("app-splash");
+  setTimeout(function () {
+    splash.classList.add("out");
+    setTimeout(function () { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 500);
+  }, 1300);
+
+  var scrim = document.getElementById("scrim");
+  function openSheetEl() { return document.querySelector(".sheet.open"); }
+  function closeSheets() {
+    Array.prototype.forEach.call(document.querySelectorAll(".sheet.open"), function (s) { s.classList.remove("open"); });
+    scrim.classList.remove("open");
+  }
+  function openSheet(id) {
+    closeSheets();
+    var s = document.getElementById(id);
+    if (!s) return;
+    s.classList.add("open");
+    scrim.classList.add("open");
+  }
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest ? e.target.closest("[data-sheet],[data-close]") : null;
+    if (t && t.hasAttribute("data-sheet")) { openSheet(t.getAttribute("data-sheet")); return; }
+    if (t && t.hasAttribute("data-close")) { closeSheets(); return; }
+    if (e.target === scrim) closeSheets();
+  });
+
+  // Android back button (called by MainActivity). Returns true when handled;
+  // false lets the app ask before exiting.
+  window.onAndroidBack = function () {
+    if (openSheetEl()) { closeSheets(); return true; }
+    if (window.wsiBack && window.wsiBack()) return true;
+    return false;
+  };
+})();
 </script>
 </body>
 </html>
